@@ -36,17 +36,16 @@ class ConceptNetConnector:
         """
         return requests.get(self.api_url + self.node_uri + term).json()
 
-    # TODO: determine how to replace the given term from the returned edges
-    def replace_term(self, term, synonym=False):
+    def find_connected_edges(self, term):
         """
-        A function that takes as input a term, and uses the response from the ConceptNet api to determine a proper
-        replacement for that term.
+        A function that takes as input a term, and uses the response from the ConceptNet api to return the connected
+        edges to that term
 
-        :param term: a string indicating the term that needs to be replaced
-        :param synonym: a boolean value determining if the replacement will be synonym or antonym of the term
-        :return: a string representing the replacement for the original term
+        :param term: a string indicating the term whose edges will be searched
+        :return: a list of edges connected to the search term
         """
-        connected_edges = [e['@id'] for e in self.search_term(term)['edges']]
+        connected_edges = [e['@id'][4:-1].split(',') for e in self.search_term(term)['edges']]
+
         return connected_edges
 
 
@@ -69,17 +68,24 @@ def main(args):
     connector = ConceptNetConnector()
     reply = connector.search_term(args.search)
 
-    print("The returning object has the following keys:")
+    print("The returning object of the search_term() method has the following keys:")
     print(", ".join(k for k in reply.keys()))
     print("\nThe most important field is the 'edges', which contains the different labeled edges that connect the "
           "current word with other terms")
 
-    print("The edges are represented as below:")
     edges = [e['@id'] for e in reply['edges']]
+    print("The edges are represented as below:")
     print("\n".join(edges))
 
     print("\nThe type of each edge is:")
     print(type(edges[0]))
+
+    connected_edges = connector.find_connected_edges(args.search)
+    print("\nThe returned object from the find_connected_edges() method is the list of edges below:")
+    print("\n".join(" ".join(ce) for ce in connected_edges))
+
+    print('\nThe type of the each edge returned from the last method is:')
+    print(type(connected_edges[0]))
 
     print("\nScript execution time: " + str(datetime.now()-start_time))
 
