@@ -4,14 +4,18 @@ Created 2 May 2023
 Description: A script containing a custom connector class with the ConceptNet api
 
 Usage:
-    Obtain information about what each method of the connector returns, and how the data are
-    being represented.
+1)  Obtain information about what each method of the connector returns, and how the data are
+    being represented by giving a sample term to search.
     python3 ConceptNetConnector.py
         --search <a string to be searched in the ConceptNet>
 
+2)  Obtain information about the class and its methods using the default search_term, which is
+    the word <dog>.
+    python3 ConceptNetConnector.py
+
 Example:
     python3 ConceptNetConnector.py
-        --search dog
+        --search table
 """
 
 import requests
@@ -54,7 +58,7 @@ def parse_input(args=None):
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-s", "--search", type=str, action="store", metavar="search",
-                        required=True, help="The term to be searched in the ConceptNet")
+                        required=False, default="dog", help="The term to be searched in the ConceptNet")
 
     return parser.parse_args(args)
 
