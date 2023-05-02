@@ -38,7 +38,7 @@ class ConceptNetConnector:
 
     def find_connected_edges(self, term):
         """
-        A function that takes as input a term, and uses the response from the ConceptNet api to return the connected
+        A method that takes as input a term, and uses the response from the ConceptNet api to return the connected
         edges to that term
 
         :param term: a string indicating the term whose edges will be searched
@@ -47,6 +47,21 @@ class ConceptNetConnector:
         connected_edges = [e['@id'][4:-1].split(',') for e in self.search_term(term)['edges']]
 
         return connected_edges
+
+    # TODO: implement the decision process for the optimal replacements
+    def find_replacements(self, term, quantity=1):
+        """
+        A method that takes as input a string and an integer and returns a list of possible replacements
+        for that string, based on labels of connected to that string edges in the ConceptNet graph.
+
+        :param term: the string that needs to be replaced
+        :param quantity: number of candidate replacements to be returned
+        :return: a list with length=quantity, with candidate replacements for the given term
+        """
+
+        replacements = []
+
+        return replacements
 
 
 def parse_input(args=None):
@@ -93,7 +108,3 @@ def main(args):
 if __name__ == '__main__':
     ARG = parse_input()
     main(ARG)
-
-
-
-
