@@ -111,7 +111,13 @@ def main(args):
     print('\nThe type of the each edge returned from the last method is:')
     print(type(connected_edges[0]))
 
-    print("\nScript execution time: " + str(datetime.now()-start_time))
+    replacements = connector.find_replacements(args.search, quantity=5, synonym=True)
+    print("\nThe method find_replacements() returns a list of possible replacements for the given term")
+    print("In this case, for the term {} the first 5 replacements are:".format(args.search))
+    print("\n".join(replacements))
+
+
+    print("\n\nScript execution time: " + str(datetime.now()-start_time))
 
 
 if __name__ == '__main__':
