@@ -62,9 +62,10 @@ class ConceptNetConnector:
 
         replacements = []
 
-        positive_edges = set()
-        negative_edges = set()
+        positive_edges = {'Synonym', 'RelatedTo'}
+        negative_edges = {'RelatedTo'}
 
+        # we also filter the edges, to keep only those which connect two english terms
         for e in filter(lambda x: '/en/' in x[1] and '/en/' in x[2], self.find_connected_edges(term)):
             if e[0][3:-1] in positive_edges if synonym else negative_edges:
                 replacements.append(e[1][4:-1] if e[1][4:-1] != term else e[2][4:-1])
