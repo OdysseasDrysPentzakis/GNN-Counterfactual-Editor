@@ -61,13 +61,12 @@ class ConceptNetConnector:
         """
 
         replacements = []
-
-        positive_edges = {'Synonym', 'RelatedTo'}
-        negative_edges = {'RelatedTo'}
+        positive_edges = {'Synonym', 'SimilarTo'}
+        negative_edges = {'Antonym'}
 
         # we also filter the edges, to keep only those which connect two english terms
         for e in filter(lambda x: '/en/' in x[1] and '/en/' in x[2], self.find_connected_edges(term)):
-            if e[0][3:-1] in positive_edges if synonym else negative_edges:
+            if e[0][3:-1] in (positive_edges if synonym else negative_edges):
                 replacements.append(e[1].split('/')[3] if e[1].split('/')[3] != term else e[2].split('/')[3])
 
         return replacements[:quantity]
@@ -111,7 +110,7 @@ def main(args):
     print('\nThe type of the each edge returned from the last method is:')
     print(type(connected_edges[0]))
 
-    replacements = connector.find_replacements(args.search, quantity=5, synonym=True)
+    replacements = connector.find_replacements(args.search, quantity=5, synonym=False)
     print("\nThe method find_replacements() returns a list of possible replacements for the given term")
     print("In this case, for the term {} the first 5 replacements are:".format(args.search))
     print("\n".join(replacements))
