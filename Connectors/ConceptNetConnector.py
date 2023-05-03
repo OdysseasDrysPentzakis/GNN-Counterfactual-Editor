@@ -49,19 +49,27 @@ class ConceptNetConnector:
         return connected_edges
 
     # TODO: implement the decision process for the optimal replacements
-    def find_replacements(self, term, quantity=1):
+    def find_replacements(self, term, quantity=1, synonym=False):
         """
         A method that takes as input a string and an integer and returns a list of possible replacements
         for that string, based on labels of connected to that string edges in the ConceptNet graph.
 
         :param term: the string that needs to be replaced
         :param quantity: number of candidate replacements to be returned
+        :param synonym: a boolean value indicating if the given term should be replaced with synonyms or antonyms
         :return: a list with length=quantity, with candidate replacements for the given term
         """
 
         replacements = []
 
-        return replacements
+        positive_edges = set()
+        negative_edges = set()
+
+        for e in filter(lambda x: '/en/' in x[1] and '/en/' in x[2], self.find_connected_edges(term)):
+            if e[0][3:-1] in positive_edges if synonym else negative_edges:
+                replacements.append(e[1][4:-1] if e[1][4:-1] != term else e[2][4:-1])
+
+        return replacements[:quantity]
 
 
 def parse_input(args=None):
