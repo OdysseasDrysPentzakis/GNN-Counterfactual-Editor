@@ -48,7 +48,6 @@ class ConceptNetConnector:
 
         return connected_edges
 
-    # TODO: implement the decision process for the optimal replacements
     def find_replacements(self, term, quantity=1, synonym=False):
         """
         A method that takes as input a string and an integer and returns a list of possible replacements
@@ -61,7 +60,7 @@ class ConceptNetConnector:
         """
 
         replacements = []
-        positive_edges = {'Synonym', 'SimilarTo'}
+        positive_edges = {'Synonym', 'SimilarTo', 'IsA'}
         negative_edges = {'Antonym'}
 
         # we also filter the edges, to keep only those which connect two english terms
