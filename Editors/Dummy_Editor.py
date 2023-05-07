@@ -13,7 +13,7 @@ class DummyEditor:
         # create initial connector objects for interaction with WordNet and ConceptNet
         self.cnc = ConceptNetConnector()
         self.wnc = WordNetConnector()
-        # pos - Position of Speech (verb, noun, etc.)
+        # pos - Part of Speech (verb, noun, etc.)
         self.pos = pos
         # synonyms - if replacements should be synonyms or antonyms
         self.synonyms = synonyms
