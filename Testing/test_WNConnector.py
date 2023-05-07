@@ -22,7 +22,6 @@ Example:
 
 """
 
-
 import argparse
 from datetime import datetime
 from Connectors.WordNetConnector import WordNetConnector
