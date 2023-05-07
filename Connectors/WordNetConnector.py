@@ -11,5 +11,5 @@ class WordNetConnector:
     def __init__(self):
         pass
 
-    def find_replacements(self, term, quantity=1, synonym=False):
+    def find_replacements(self, term, quantity=1, synonym=False, pos=None):
         pass
