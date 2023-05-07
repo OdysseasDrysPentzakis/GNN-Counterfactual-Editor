@@ -52,4 +52,4 @@ class ConceptNetConnector:
             if e[0][3:-1] in (positive_edges if synonym else negative_edges):
                 replacements.append(e[1].split('/')[3] if e[1].split('/')[3] != term else e[2].split('/')[3])
 
-        return replacements[:quantity]
+        return replacements if quantity >= len(replacements) else replacements[:quantity]
