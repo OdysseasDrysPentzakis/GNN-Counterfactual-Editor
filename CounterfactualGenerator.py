@@ -7,7 +7,7 @@ from Editors.DummyEditor import DummyEditor
 
 class CounterfactualGenerator:
     def __init__(self, src_file=None, src_sentence=None, indicative_sentence=None, dest_file=None, separator=None,
-                 pos=None, synonyms=False):
+                 pos=None, synonyms=None):
         """
         :param src_file: a csv file containing Source_Sentences and Indicative_Sentences
         :param src_sentence: a string representing the source sentence that will be used to create a counterfactual
@@ -22,7 +22,7 @@ class CounterfactualGenerator:
         self.src_sentence = None
         self.dest_file = None
         self.separator = ',' if separator is None else separator
-
+        self.synonyms = False if synonyms is None else True
         # check if source file or source sentence was given
         if src_file is None:
             if src_sentence is None:
@@ -45,7 +45,7 @@ class CounterfactualGenerator:
             self.dest_file = src_file if dest_file is None else dest_file
 
         # editor that will perform the necessary changes to src_sentence or src_sentences
-        self.editor = DummyEditor(pos=pos, synonyms=synonyms)
+        self.editor = DummyEditor(pos=pos, synonyms=self.synonyms)
 
     def generate_counterfactuals(self, sentence):
         """
@@ -90,3 +90,46 @@ class CounterfactualGenerator:
             self.generate_counterfactuals(sentence=True)
         else:
             self.generate_counterfactuals(sentence=False).export_to_csv()
+
+
+def parse_input(args=None):
+    """
+        param args: The command line arguments provided by the user
+        :return:  The parsed input Namespace
+    """
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-s", "--src-file", type=str, action="store", metavar="src_file",
+                        required=False, help="The csv file with two columns - Source_Sentences, Indicative_Sentences")
+    parser.add_argument("-d", "--dest-file", type=str, action="store", metavar="dest_file",
+                        required=False, help="A csv file in which the generated counterfactuals will be stored")
+    parser.add_argument("--src-sentence", type=str, action="store", metavar="src_sentence",
+                        required=False, help="The source sentence that will be used to create a single counterfactual")
+    parser.add_argument("--indicative-sentence", type=str, action="store", metavar="indicative_sentence",
+                        required=False, help="The sentence that indicates which words should be changed in the source"
+                                             "sentence")
+    parser.add_argument("--sep", type=str, action="store", metavar="sep",
+                        required=False, help="The delimiter that separates columns in the src_file")
+    parser.add_argument("-p", "--pos", choices=['n', 'v', 'a', 'r', 's'], action='store', metavar="pos",
+                        required=False, help="The part-of-speech that the replacements should be")
+    parser.add_argument("--synonyms", action='store', metavar="synonyms", required=False,
+                        help="Whether synononyms or antonyms should be used as replacements")
+
+    return parser.parse_args(args)
+
+
+def main(args):
+    start_time = datetime.now()
+
+    cf_generator = CounterfactualGenerator(src_file=args.src_file, dest_file=args.dest_file,
+                                           src_sentence=args.src_sentence, indicative_sentence=args.indicative_sentence,
+                                           separator=args.sep, pos=args.pos, synonyms=args.synonyms)
+
+    cf_generator.pipeline()
+
+    print("\n\nScript execution time: " + str(datetime.now() - start_time))
+
+
+if __name__ == '__main__':
+    ARG = parse_input()
+    main(ARG)
