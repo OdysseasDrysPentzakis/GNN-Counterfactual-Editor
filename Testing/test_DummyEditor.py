@@ -15,7 +15,7 @@ Example:
 """
 
 from datetime import datetime
-from Editors.Dummy_Editor import DummyEditor
+from Editors.DummyEditor import DummyEditor
 
 
 def main():
