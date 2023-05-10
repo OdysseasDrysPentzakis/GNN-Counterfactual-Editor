@@ -60,22 +60,31 @@ class CounterfactualGenerator:
         print("[INFO]: Generating counterfactuals...")
 
         if sentence:
-            counterfactual = self.editor.generate_counterfactual(self.src_sentence, self.indicative_sentence)
-            print("The following counterfactual was generated:")
-            print(counterfactual)
+            try:
+                counterfactual = self.editor.generate_counterfactual(self.src_sentence, self.indicative_sentence)
+                print("The following counterfactual was generated:")
+                print(counterfactual)
+            except IndexError:
+                print("[ERROR]: Could not create a counterfactual for this sentence!")
+                exit(1)
 
         else:
             generated_sentences = []
             for i in range(self.sentences.shape[1]):
-                generated_sentences.append(self.editor.generate_counterfactual(self.sentences['Source_Sentences'][i],
-                                                                               self.sentences['Indicative_Sentences'][i]
-                                                                               ))
+                try:
+                    new_sentence = self.editor.generate_counterfactual(self.sentences['Source_Sentences'][i],
+                                                                       self.sentences['Indicative_Sentences'][i]
+                                                                       )
+                    generated_sentences.append(new_sentence)
+                except IndexError:
+                    generated_sentences.append(" ")
+
             self.sentences['Counterfactual_Sentences'] = generated_sentences
             return self
 
     def export_to_csv(self):
         """
-        A function that saves a dataframe with columns ['Source_Sentences', 'Inidicative_Sentences',
+        A function that saves a dataframe with columns ['Source_Sentences', 'Indicative_Sentences',
         'Counterfactual_Sentences'] in a given destination file
 
         :return: a CounterfactualGenerator object
@@ -112,8 +121,8 @@ def parse_input(args=None):
                         required=False, help="The delimiter that separates columns in the src_file")
     parser.add_argument("-p", "--pos", choices=['n', 'v', 'a', 'r', 's'], action='store', metavar="pos",
                         required=False, help="The part-of-speech that the replacements should be")
-    parser.add_argument("--synonyms", action='store', metavar="synonyms", required=False,
-                        help="Whether synononyms or antonyms should be used as replacements")
+    parser.add_argument("--synonyms", action='store_true', required=False,
+                        help="Whether synonyms or antonyms should be used as replacements")
 
     return parser.parse_args(args)
 
