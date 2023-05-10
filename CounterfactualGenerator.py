@@ -1,3 +1,38 @@
+"""
+Created 10 May 2023
+@author: Dimitris Lymperopoulos
+Description: A script that generates counterfactual explanations for a given sentence or sentences
+
+Usage:
+1)  Generate a counterfactual sentence for a single given source_sentence, using synonyms as replacements
+    python3 CounterfactualGenerator.py
+        --src-sentence <a string representing the original sentence>
+        --indicative-sentence < a string indicating which words should be changed in the original sentence>
+        --synonyms
+        [--pos  <['n', 'a', 'v', 'r', 's'], represents part-of-speech of words that will be changed>]
+
+2)  Generate counterfactual sentences based on a given source file and store the results in a destination file
+    python3 CounterfactualGenerator.py
+        --src-file <.csv file containing two columns: Source_Sentences,Indicative_Sentences>
+        [--dest-file < .csv file in which the generated sentences will be stored - default is src_file>]
+        [--sep < a string representing the separator of the src_file - default is comma(',')>]
+
+Example:
+1)
+    python3 CounterfactualGenerator.py
+        --src-sentence "A beautiful movie with great plot and interesting characters!"
+        --indicative-sentence "A [BLANK] movie with [BLANK] plot and [BLANK] characters!"
+        --synonyms
+
+2)
+    python3 CounterfactualGenerator.py
+        --src-file ~/sentences.csv
+        --dest-file ~/generated_sentences.csv
+        --sep "|"
+        --pos "a"
+
+"""
+
 import argparse
 import os
 import pandas as pd
