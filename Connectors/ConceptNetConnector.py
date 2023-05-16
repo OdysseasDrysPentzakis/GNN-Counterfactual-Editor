@@ -76,6 +76,15 @@ class ConceptNet:
         return edges_out
 
     def get_edges_label_from_db(self, node_name, edge_label):
+        """
+        A function that searches the conceptnet database to find the required edges with the given label,
+        updates the conceptnet graph with the new information acquired and returns the terms that those edges
+        connect with the given node.
+
+        :param node_name: string indicating a word that corresponds to a node in the conceptnet graph
+        :param edge_label: the label of the edges that we are interested in
+        :return:
+        """
         targets = set()
         try:
             for e in edges_for(Label.get(text=node_name, language='en').concepts, same_language=True):
@@ -94,7 +103,6 @@ class ConceptNet:
 
     def get_edges_label(self, node_name, edge_label):
         """
-
         :param node_name: string indicating a word that corresponds to a node in the conceptnet graph
         :param edge_label: string representing the label of the edges we are interested in
         :return: a list of terms that are connected to the given node through a labeled edge with the given label
