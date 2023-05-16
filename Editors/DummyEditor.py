@@ -11,7 +11,7 @@ from Connectors.WordNetConnector import WordNetConnector
 class DummyEditor:
     def __init__(self, pos=None, synonyms=False):
         # create initial connector objects for interaction with WordNet and ConceptNet
-        self.cnc = ConceptNetConnector()
+        self.cnc = ConceptNetConnector(conceptnet_api=False)
         self.wnc = WordNetConnector()
         # pos - Part of Speech (verb, noun, etc.)
         self.pos = pos
