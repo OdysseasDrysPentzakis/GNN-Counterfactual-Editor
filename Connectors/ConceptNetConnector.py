@@ -122,7 +122,9 @@ class ConceptNetConnector:
         self.edge_uri = "/r/"
         self.api_url = "http://api.conceptnet.io"
         self.conceptnet_api = conceptnet_api
-        self.cn = ConceptNet("conceptnet.db") if not conceptnet_api else None
+        self.cn = ConceptNet(
+            os.path.join(os.getcwd(), "ConceptNet_DB", "conceptnet.db")
+        ) if not conceptnet_api else None
 
     def search_term(self, term):
         """
