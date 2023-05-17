@@ -117,6 +117,7 @@ class ConceptNetConnector:
         """
 
         :param conceptnet_api: boolean value that determines if conceptnet_api or conceptnet_lite will be used
+        :param conceptnet_db_path: a string representing the folder in which the conceptnet db file will be stored
         """
         self.node_uri = "/c/en/"
         self.edge_uri = "/r/"

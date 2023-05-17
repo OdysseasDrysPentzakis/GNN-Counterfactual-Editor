@@ -12,6 +12,16 @@ class WordNetConnector:
         pass
 
     def find_replacements(self, term, quantity=1, synonym=False, pos=None):
+        """
+        A method that takes as input a string and an integer and returns a list of possible replacements
+        for that string, based on the WordNet graph
+
+        :param term: the string that needs to be replaced
+        :param quantity: number of candidate replacements to be returned
+        :param synonym: a boolean value indicating if the given term should be replaced with synonyms or antonyms
+        :param pos: a string representing the part-of-speach of the replacements (and the given term)
+        :return: a list with length=quantity, with candidate replacements for the given term
+        """
         synsets = wn.synsets(term)
         replacements = []
 

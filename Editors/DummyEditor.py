@@ -4,13 +4,17 @@ Created 7 May 2023
 Description: A script containing a dummy counterfactual editor class that uses ConceptNet and WordNet
 """
 import os
-
 from Connectors.ConceptNetConnector import ConceptNetConnector
 from Connectors.WordNetConnector import WordNetConnector
 
 
 class DummyEditor:
     def __init__(self, pos=None, synonyms=False):
+        """
+
+        :param pos: a string representing the part-of-speach that the replacements will occur
+        :param synonyms: a boolean value indicating if replacements shoud be synonyms or antonyms of the original words
+        """
         # create initial connector objects for interaction with WordNet and ConceptNet
         self.cnc = ConceptNetConnector(conceptnet_api=False,
                                        conceptnet_db_path=os.path.join(os.getcwd(), os.pardir, "Connectors")
@@ -22,6 +26,14 @@ class DummyEditor:
         self.synonyms = synonyms
 
     def get_replacements(self, word, pos=None):
+        """
+        A function that searches the ConceptNet in order to find suitable replacements for the given word. If such
+        replacements do not exist, then it searches the WordNet for them.
+
+        :param word: a string representing the original word that need to be replaced
+        :param pos: a string representing part-of-speach of the original word and the replacements
+        :return: a list of possible replacements for the given word
+        """
         # get possible replacements using ConceptNet, and if none were found, use WordNet instead
         replacements = self.cnc.find_replacements(word, quantity=5, synonym=self.synonyms)
         if len(replacements) == 0:
@@ -31,6 +43,14 @@ class DummyEditor:
         return replacements[0]
 
     def generate_counterfactual(self, original_sentence, indicative_sentence):
+        """
+        A function that takes as input an original_sentence, and based on a given indicative_sentence, uses knowledge
+        extracted from ConceptNet and WordNet in order to generate a counterfactual sentence.
+
+        :param original_sentence: a string representing the sentence whose words will be changed
+        :param indicative_sentence: a string that indicated which words of the original sentence shall be changed
+        :return: the original sentence where the specified words have been replaced with those extracted from ConceptNet
+        """
         original_sentence_list = original_sentence.split()
         indicative_sentence_list = indicative_sentence.split()
 
