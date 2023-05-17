@@ -113,7 +113,7 @@ class ConceptNet:
 
 
 class ConceptNetConnector:
-    def __init__(self, conceptnet_api=True):
+    def __init__(self, conceptnet_api=True, conceptnet_db_path=os.getcwd()):
         """
 
         :param conceptnet_api: boolean value that determines if conceptnet_api or conceptnet_lite will be used
@@ -123,7 +123,7 @@ class ConceptNetConnector:
         self.api_url = "http://api.conceptnet.io"
         self.conceptnet_api = conceptnet_api
         self.cn = ConceptNet(
-            os.path.join(os.getcwd(), "ConceptNet_DB", "conceptnet.db")
+            os.path.join(conceptnet_db_path, "ConceptNet_DB", "conceptnet.db")
         ) if not conceptnet_api else None
 
     def search_term(self, term):

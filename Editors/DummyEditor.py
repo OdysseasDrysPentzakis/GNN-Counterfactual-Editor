@@ -3,6 +3,7 @@ Created 7 May 2023
 @author: Dimitris Lymperopoulos
 Description: A script containing a dummy counterfactual editor class that uses ConceptNet and WordNet
 """
+import os
 
 from Connectors.ConceptNetConnector import ConceptNetConnector
 from Connectors.WordNetConnector import WordNetConnector
@@ -11,7 +12,9 @@ from Connectors.WordNetConnector import WordNetConnector
 class DummyEditor:
     def __init__(self, pos=None, synonyms=False):
         # create initial connector objects for interaction with WordNet and ConceptNet
-        self.cnc = ConceptNetConnector(conceptnet_api=False)
+        self.cnc = ConceptNetConnector(conceptnet_api=False,
+                                       conceptnet_db_path=os.path.join(os.getcwd(), os.pardir, "Connectors")
+                                       )
         self.wnc = WordNetConnector()
         # pos - Part of Speech (verb, noun, etc.)
         self.pos = pos
