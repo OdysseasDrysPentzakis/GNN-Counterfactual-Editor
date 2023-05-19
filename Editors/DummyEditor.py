@@ -7,6 +7,7 @@ Description: A script containing a dummy counterfactual editor class that uses C
 import os
 from Connectors.ConceptNetConnector import ConceptNetConnector
 from Connectors.WordNetConnector import WordNetConnector
+from utils.metrics import *
 
 
 class DummyEditor:
@@ -32,7 +33,8 @@ class DummyEditor:
         replacements do not exist, then it searches the WordNet for them.
 
         :param word: a string representing the original word that need to be replaced
-        :param word_similarity: a function that returns a similarity score between two words
+        :param word_similarity: a string indicating which similarity function shall be used ('wordnet', 'spacy',
+        'mixed')
         :param pos: a string representing part-of-speach of the original word and the replacements
         :return: a list of possible replacements for the given word
         """
@@ -42,7 +44,15 @@ class DummyEditor:
             replacements = self.wnc.find_replacements(word, quantity=5, synonym=self.synonyms, pos=pos)
 
         # return the candidate with the maximum similarity with the original word
-        return max(replacements, key=lambda x: word_similarity(word, x))
+        if word_similarity == "wordnet":
+            return max(replacements, key=lambda x: wordnet_similarity(word, x))
+        elif word_similarity == "spacy":
+            return max(replacements, key=lambda x: spacy_similarity(word, x))
+        elif word_similarity == 'mixed':
+            return max(replacements, key=lambda x: mixed_similarity(word, x))
+        else:
+            print("[ERROR]: '{}' is not an available value for parameter 'word_similarity'!".format(word_similarity))
+            exit(1)
 
     def generate_counterfactual(self, original_sentence, indicative_sentence, word_similarity):
         """
@@ -51,7 +61,8 @@ class DummyEditor:
 
         :param original_sentence: a string representing the sentence whose words will be changed
         :param indicative_sentence: a string that indicated which words of the original sentence shall be changed
-        :param word_similarity: a function that returns a similarity score between two words
+        :param word_similarity: a string indicating which similarity function shall be used ('wordnet', 'spacy',
+        'mixed')
         :return: the original sentence where the specified words have been replaced with those extracted from ConceptNet
         """
         original_sentence_list = original_sentence.split()
@@ -62,7 +73,8 @@ class DummyEditor:
             if original_sentence_list[i] == indicative_sentence_list[i]:
                 continue
             else:
-                indicative_sentence_list[i] = self.get_replacements(original_sentence_list[i], self.pos,
-                                                                    word_similarity)
+                indicative_sentence_list[i] = self.get_replacements(original_sentence_list[i],
+                                                                    word_similarity=word_similarity,
+                                                                    pos=self.pos)
 
         return " ".join(indicative_sentence_list)
