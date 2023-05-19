@@ -28,8 +28,16 @@ def main():
     print("ORIGINAL SENTENCE:")
     print(sentence)
 
-    counter_sentence = editor.generate_counterfactual(sentence, indicative_sentence)
-    print("\nGENERATED SENTENCE:")
+    counter_sentence = editor.generate_counterfactual(sentence, indicative_sentence, word_similarity='wordnet')
+    print("\nGENERATED SENTENCE WITH WORDNET_SIMILARITY:")
+    print(counter_sentence)
+
+    counter_sentence = editor.generate_counterfactual(sentence, indicative_sentence, word_similarity='spacy')
+    print("\nGENERATED SENTENCE WITH SPACY_SIMILARITY:")
+    print(counter_sentence)
+
+    counter_sentence = editor.generate_counterfactual(sentence, indicative_sentence, word_similarity='mixed')
+    print("\nGENERATED SENTENCE WITH MIXED_SIMILARITY:")
     print(counter_sentence)
 
     print("\n\nScript execution time: " + str(datetime.now()-start_time))
