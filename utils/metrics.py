@@ -76,15 +76,15 @@ def conceptnet_similarity(w1, w2, embeddings):
         :return: a float representing the similarity of the two words
         """
 
-    if w1 in embeddings.kesy() and w2 in embeddings.keys():
+    if w1 in embeddings.keys() and w2 in embeddings.keys():
         return 1 - spatial.distance.cosine(np.array(embeddings[w1], dtype=float), np.array(embeddings[w2], dtype=float))
     else:
         return 0
 
 
 def main():
-    word1 = "1amf"
-    word2 = "2amf"
+    word1 = "dog"
+    word2 = "cat"
     with open(os.path.join(os.getcwd(), os.pardir, 'Data', 'cn_embeddings.p'), 'rb') as f:
         cn_embeddings = pickle.load(f)
 
