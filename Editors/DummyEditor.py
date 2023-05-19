@@ -3,6 +3,7 @@ Created 7 May 2023
 @author: Dimitris Lymperopoulos
 Description: A script containing a dummy counterfactual editor class that uses ConceptNet and WordNet
 """
+
 import os
 from Connectors.ConceptNetConnector import ConceptNetConnector
 from Connectors.WordNetConnector import WordNetConnector
@@ -25,12 +26,13 @@ class DummyEditor:
         # synonyms - if replacements should be synonyms or antonyms
         self.synonyms = synonyms
 
-    def get_replacements(self, word, pos=None):
+    def get_replacements(self, word, word_similarity, pos=None):
         """
         A function that searches the ConceptNet in order to find suitable replacements for the given word. If such
         replacements do not exist, then it searches the WordNet for them.
 
         :param word: a string representing the original word that need to be replaced
+        :param word_similarity: a function that returns a similarity score between two words
         :param pos: a string representing part-of-speach of the original word and the replacements
         :return: a list of possible replacements for the given word
         """
@@ -39,16 +41,17 @@ class DummyEditor:
         if len(replacements) == 0:
             replacements = self.wnc.find_replacements(word, quantity=5, synonym=self.synonyms, pos=pos)
 
-        # return the candidate with the maximum similarity with the original word - TODO
-        return replacements[0]
+        # return the candidate with the maximum similarity with the original word
+        return max(replacements, key=lambda x: word_similarity(word, x))
 
-    def generate_counterfactual(self, original_sentence, indicative_sentence):
+    def generate_counterfactual(self, original_sentence, indicative_sentence, word_similarity):
         """
         A function that takes as input an original_sentence, and based on a given indicative_sentence, uses knowledge
         extracted from ConceptNet and WordNet in order to generate a counterfactual sentence.
 
         :param original_sentence: a string representing the sentence whose words will be changed
         :param indicative_sentence: a string that indicated which words of the original sentence shall be changed
+        :param word_similarity: a function that returns a similarity score between two words
         :return: the original sentence where the specified words have been replaced with those extracted from ConceptNet
         """
         original_sentence_list = original_sentence.split()
@@ -59,6 +62,7 @@ class DummyEditor:
             if original_sentence_list[i] == indicative_sentence_list[i]:
                 continue
             else:
-                indicative_sentence_list[i] = self.get_replacements(original_sentence_list[i], self.pos)
+                indicative_sentence_list[i] = self.get_replacements(original_sentence_list[i], self.pos,
+                                                                    word_similarity)
 
         return " ".join(indicative_sentence_list)
