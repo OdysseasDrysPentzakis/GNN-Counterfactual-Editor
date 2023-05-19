@@ -88,9 +88,9 @@ def main():
     with open(os.path.join(os.getcwd(), os.pardir, 'Data', 'cn_embeddings.p'), 'rb') as f:
         cn_embeddings = pickle.load(f)
 
-    # print("Spacy Similarity:", spacy_similarity(word1, word2))
-    # print("WordNet Similarity:", wordnet_similarity(word1, word2))
-    # print("Mixed Similarity:", mixed_similarity(word1, word2))
+    print("Spacy Similarity:", spacy_similarity(word1, word2))
+    print("WordNet Similarity:", wordnet_similarity(word1, word2))
+    print("Mixed Similarity:", mixed_similarity(word1, word2))
     print("ConceptNet Similarity:", conceptnet_similarity(word1, word2, cn_embeddings))
 
 
