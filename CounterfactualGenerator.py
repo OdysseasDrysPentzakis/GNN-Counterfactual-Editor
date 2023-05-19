@@ -96,7 +96,8 @@ class CounterfactualGenerator:
 
         if sentence:
             try:
-                counterfactual = self.editor.generate_counterfactual(self.src_sentence, self.indicative_sentence)
+                counterfactual = self.editor.generate_counterfactual(self.src_sentence, self.indicative_sentence,
+                                                                     word_similarity='spacy')
                 print("The following counterfactual was generated:")
                 print(counterfactual)
             except IndexError:
@@ -108,7 +109,8 @@ class CounterfactualGenerator:
             for i in range(self.sentences.shape[1]):
                 try:
                     new_sentence = self.editor.generate_counterfactual(self.sentences['Source_Sentences'][i],
-                                                                       self.sentences['Indicative_Sentences'][i]
+                                                                       self.sentences['Indicative_Sentences'][i],
+                                                                       word_similarity='spacy'
                                                                        )
                     generated_sentences.append(new_sentence)
                 except IndexError:
