@@ -34,7 +34,7 @@ class DummyEditor:
 
         :param word: a string representing the original word that need to be replaced
         :param word_similarity: a string indicating which similarity function shall be used ('wordnet', 'spacy',
-        'mixed')
+        'mixed', 'conceptnet')
         :param pos: a string representing part-of-speach of the original word and the replacements
         :return: a list of possible replacements for the given word
         """
@@ -50,6 +50,10 @@ class DummyEditor:
             return max(replacements, key=lambda x: spacy_similarity(word, x))
         elif word_similarity == 'mixed':
             return max(replacements, key=lambda x: mixed_similarity(word, x))
+        elif word_similarity == 'conceptnet':
+            with open(os.path.join(os.getcwd(), os.pardir, 'Data', 'cn_embeddings.p'), 'rb') as f:
+                cn_embeddings = pickle.load(f)
+            return max(replacements, key=lambda x: conceptnet_similarity(word, x, embeddings=cn_embeddings))
         else:
             print("[ERROR]: '{}' is not an available value for parameter 'word_similarity'!".format(word_similarity))
             exit(1)
@@ -62,7 +66,7 @@ class DummyEditor:
         :param original_sentence: a string representing the sentence whose words will be changed
         :param indicative_sentence: a string that indicated which words of the original sentence shall be changed
         :param word_similarity: a string indicating which similarity function shall be used ('wordnet', 'spacy',
-        'mixed')
+        'mixed'm, 'conceptnet')
         :return: the original sentence where the specified words have been replaced with those extracted from ConceptNet
         """
         original_sentence_list = original_sentence.split()

@@ -40,6 +40,10 @@ def main():
     print("\nGENERATED SENTENCE WITH MIXED_SIMILARITY:")
     print(counter_sentence)
 
+    counter_sentence = editor.generate_counterfactual(sentence, indicative_sentence, word_similarity='conceptnet')
+    print("\nGENERATED SENTENCE WITH CONCEPTNET_SIMILARITY:")
+    print(counter_sentence)
+
     print("\n\nScript execution time: " + str(datetime.now()-start_time))
 
 
