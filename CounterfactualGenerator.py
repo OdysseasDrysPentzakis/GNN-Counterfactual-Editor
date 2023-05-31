@@ -78,7 +78,7 @@ class CounterfactualGenerator:
         self.dest_file = None
         self.pos = pos
         self.separator = ',' if separator is None else separator
-        self.synonyms = False if synonyms is None else True
+        self.synonyms = True if synonyms else False
         # check if source file or source sentence was given
         if src_file is None:
             if src_sentence is None:
