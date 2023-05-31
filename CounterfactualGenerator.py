@@ -38,6 +38,26 @@ import os
 import pandas as pd
 from datetime import datetime
 from Editors.DummyEditor import DummyEditor
+from nltk import pos_tag, word_tokenize
+
+
+nltk_pos_map = {
+    'N': 'noun',
+    'V': 'verb',
+    'J': 'adjective'
+}
+
+
+def create_indicative_sentence(s, pos):
+    """
+    :param s: A string representing the original sentence
+    :param pos: part-of-speach of the words that need to be candidates for changing
+    :return: An indicative sentence in the polyjuice format, that dictates which words should be replaced
+    """
+    candidate_words = {word for (word, pos_) in pos_tag(word_tokenize(s)) if nltk_pos_map.get(pos_[0], pos_[0]) == pos}
+    indicative_sentence = " ".join(list(map(lambda x: '[BLANK]' if x in candidate_words else x, s.split())))
+
+    return indicative_sentence
 
 
 class CounterfactualGenerator:
@@ -56,6 +76,7 @@ class CounterfactualGenerator:
         self.sentences = None
         self.src_sentence = None
         self.dest_file = None
+        self.pos = pos
         self.separator = ',' if separator is None else separator
         self.synonyms = False if synonyms is None else True
         # check if source file or source sentence was given
@@ -79,8 +100,16 @@ class CounterfactualGenerator:
             self.sentences = pd.read_csv(src_file, delimiter=self.separator)
             self.dest_file = src_file if dest_file is None else dest_file
 
+            # if indicative sentences are not in the source file, then pos dictates what words to change
+            if 'Indicative_Sentences' not in self.sentences.columns:
+                if self.pos is None:
+                    print("[ERROR]: Indicative Sentences and pos cannot be both None!")
+                    exit(1)
+                self.sentences['Indicative_Sentences'] = self.sentences['Source_Sentences'].apply(
+                    lambda x: create_indicative_sentence(x, self.pos))
+
         # editor that will perform the necessary changes to src_sentence or src_sentences
-        self.editor = DummyEditor(pos=pos, synonyms=self.synonyms)
+        self.editor = DummyEditor(pos=self.pos, synonyms=self.synonyms)
 
     def generate_counterfactuals(self, sentence):
         """
