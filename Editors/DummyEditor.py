@@ -7,7 +7,7 @@ Description: A script containing a dummy counterfactual editor class that uses C
 import os
 from Connectors.ConceptNetConnector import ConceptNetConnector
 from Connectors.WordNetConnector import WordNetConnector
-from utils.metrics import *
+from utils.similarity_metrics import *
 
 
 class DummyEditor:
