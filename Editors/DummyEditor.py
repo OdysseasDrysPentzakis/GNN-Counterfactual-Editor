@@ -18,8 +18,11 @@ class DummyEditor:
         :param synonyms: a boolean value indicating if replacements shoud be synonyms or antonyms of the original words
         """
         # create initial connector objects for interaction with WordNet and ConceptNet
+        conceptnet_db_path = \
+            os.path.join(os.getcwd(), "Connectors") if 'Counterfactual-Editor' in os.getcwd() \
+            else os.path.join(os.getcwd(), os.pardir, "Connectors")
         self.cnc = ConceptNetConnector(conceptnet_api=False,
-                                       conceptnet_db_path=os.path.join(os.getcwd(), os.pardir, "Connectors")
+                                       conceptnet_db_path=conceptnet_db_path
                                        )
         self.wnc = WordNetConnector()
         # pos - Part of Speech (verb, noun, etc.)
@@ -42,6 +45,8 @@ class DummyEditor:
         replacements = self.cnc.find_replacements(word, quantity=5, synonym=self.synonyms)
         if len(replacements) == 0:
             replacements = self.wnc.find_replacements(word, quantity=5, synonym=self.synonyms, pos=pos)
+        if len(replacements) == 0:
+            replacements = [word]
 
         # return the candidate with the maximum similarity with the original word
         if word_similarity == "wordnet":
@@ -51,7 +56,9 @@ class DummyEditor:
         elif word_similarity == 'mixed':
             return max(replacements, key=lambda x: mixed_similarity(word, x))
         elif word_similarity == 'conceptnet':
-            with open(os.path.join(os.getcwd(), os.pardir, 'Data', 'cn_embeddings.p'), 'rb') as f:
+            filepath = os.path.join(os.getcwd(), 'Data', 'cn_embeddings.p') if 'Counterfactual-Editor' in os.getcwd() \
+                else os.path.join(os.getcwd(), os.pardir, 'Data', 'cn_embeddings.p')
+            with open(filepath, 'rb') as f:
                 cn_embeddings = pickle.load(f)
             return max(replacements, key=lambda x: conceptnet_similarity(word, x, embeddings=cn_embeddings))
         else:

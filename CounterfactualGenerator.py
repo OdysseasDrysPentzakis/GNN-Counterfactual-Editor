@@ -42,9 +42,9 @@ from nltk import pos_tag, word_tokenize
 
 
 nltk_pos_map = {
-    'N': 'noun',
-    'V': 'verb',
-    'J': 'adjective'
+    'N': 'n',
+    'V': 'v',
+    'J': 'a'
 }
 
 
@@ -97,7 +97,7 @@ class CounterfactualGenerator:
             if src_sentence is not None:
                 print("[ERROR]: Only one of source file, source sentence can be given!")
                 exit(1)
-            self.sentences = pd.read_csv(src_file, delimiter=self.separator)
+            self.sentences = pd.read_csv(src_file, delimiter=self.separator).head()
             self.dest_file = src_file if dest_file is None else dest_file
 
             # if indicative sentences are not in the source file, then pos dictates what words to change
@@ -107,7 +107,7 @@ class CounterfactualGenerator:
                     exit(1)
                 self.sentences['Indicative_Sentences'] = self.sentences['Source_Sentences'].apply(
                     lambda x: create_indicative_sentence(x, self.pos))
-
+            print(self.sentences)
         # editor that will perform the necessary changes to src_sentence or src_sentences
         self.editor = DummyEditor(pos=self.pos, synonyms=self.synonyms)
 
@@ -135,16 +135,17 @@ class CounterfactualGenerator:
 
         else:
             generated_sentences = []
-            for i in range(self.sentences.shape[1]):
+            for i in range(self.sentences.shape[0]):
                 try:
                     new_sentence = self.editor.generate_counterfactual(self.sentences['Source_Sentences'][i],
                                                                        self.sentences['Indicative_Sentences'][i],
-                                                                       word_similarity='spacy'
+                                                                       word_similarity='wordnet'
                                                                        )
                     generated_sentences.append(new_sentence)
                 except IndexError:
-                    generated_sentences.append(" ")
+                    generated_sentences.append(self.sentences['Source_Sentences'][i])
 
+            print(generated_sentences)
             self.sentences['Counterfactual_Sentences'] = generated_sentences
             return self
 
@@ -157,7 +158,7 @@ class CounterfactualGenerator:
         """
         print("[INFO]: Exporting generated sentences to {}".format(self.dest_file))
 
-        self.sentences.to_csv(index=False, sep=self.separator)
+        self.sentences.to_csv(self.dest_file, index=False, sep=self.separator)
         return self
 
     def pipeline(self):
