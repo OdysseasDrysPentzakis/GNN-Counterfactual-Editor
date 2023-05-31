@@ -97,7 +97,7 @@ class CounterfactualGenerator:
             if src_sentence is not None:
                 print("[ERROR]: Only one of source file, source sentence can be given!")
                 exit(1)
-            self.sentences = pd.read_csv(src_file, delimiter=self.separator).head()
+            self.sentences = pd.read_csv(src_file, delimiter=self.separator)
             self.dest_file = src_file if dest_file is None else dest_file
 
             # if indicative sentences are not in the source file, then pos dictates what words to change
@@ -107,7 +107,7 @@ class CounterfactualGenerator:
                     exit(1)
                 self.sentences['Indicative_Sentences'] = self.sentences['Source_Sentences'].apply(
                     lambda x: create_indicative_sentence(x, self.pos))
-            print(self.sentences)
+
         # editor that will perform the necessary changes to src_sentence or src_sentences
         self.editor = DummyEditor(pos=self.pos, synonyms=self.synonyms)
 
