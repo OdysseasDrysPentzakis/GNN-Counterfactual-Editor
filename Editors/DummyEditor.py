@@ -50,6 +50,7 @@ class DummyEditor:
 
         # return the candidate with the maximum similarity with the original word
         if word_similarity == "wordnet":
+            # TODO: if IndexError occurs, should we set similarity to 0 or keep the original word and continue?
             return max(replacements, key=lambda x: wordnet_similarity(word, x))
         elif word_similarity == "spacy":
             return max(replacements, key=lambda x: spacy_similarity(word, x))

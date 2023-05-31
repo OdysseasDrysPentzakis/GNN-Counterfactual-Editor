@@ -33,12 +33,11 @@ def spacy_similarity(w1, w2):
     """
 
     tokens = nlp(" ".join([w1, w2]))
-    # TODO: handle pos-tags that are not present in the pos_map.keys()
-    # TODO: perhaps do not use pos-tagging in the computation of the word similarity for spacy
     return tokens[0].similarity(tokens[1]) * (
             pos_map.get(tokens[0].pos_, tokens[0].pos_) == pos_map.get(tokens[1].pos_, tokens[1].pos_))
 
 
+# TODO: when a word's sysnets() is  None, should we set wordnet similarity to 0 or return the error?
 def wordnet_similarity(w1, w2):
     """
         A function that computes the similarity of two words based on knowledge from WordNet.
@@ -47,9 +46,11 @@ def wordnet_similarity(w1, w2):
         :param w2: a string representing the second word
         :return: a float representing the similarity of the two words
         """
-
-    w1, w2 = wn.synsets(w1)[0], wn.synsets(w2)[0]
-    return w1.path_similarity(w2) * (w1.pos() == w2.pos())
+    try:
+        w1, w2 = wn.synsets(w1)[0], wn.synsets(w2)[0]
+        return w1.path_similarity(w2) * (w1.pos() == w2.pos())
+    except IndexError:
+        return 0.0
 
 
 def mixed_similarity(w1, w2):
