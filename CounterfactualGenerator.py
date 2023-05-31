@@ -145,7 +145,6 @@ class CounterfactualGenerator:
                 except IndexError:
                     generated_sentences.append(self.sentences['Source_Sentences'][i])
 
-            print(generated_sentences)
             self.sentences['Counterfactual_Sentences'] = generated_sentences
             return self
 
