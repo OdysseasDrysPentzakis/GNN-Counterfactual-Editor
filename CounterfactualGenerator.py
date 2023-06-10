@@ -35,11 +35,13 @@ Example:
 
 import argparse
 import os
+import spacy
 import pandas as pd
 from datetime import datetime
 from Editors.DummyEditor import DummyEditor
 from nltk import pos_tag, word_tokenize
 
+nlp = spacy.load("en_core_web_sm")
 
 nltk_pos_map = {
     'N': 'n',
@@ -47,15 +49,36 @@ nltk_pos_map = {
     'J': 'a'
 }
 
+spacy_pos_map = {
+    'ADJ': 'a',
+    'NOUN': 'n',
+    'AUX': 'v',
+    'VERB': 'v'
+}
 
-def create_indicative_sentence(s, pos):
+
+def create_indicative_sentence(s, pos, tagger='wordnet'):
     """
     :param s: A string representing the original sentence
     :param pos: part-of-speach of the words that need to be candidates for changing
+    :param tagger: which of wordnet or spacy pos_taggers to use - default is wordnet
     :return: An indicative sentence in the polyjuice format, that dictates which words should be replaced
     """
-    candidate_words = {word for (word, pos_) in pos_tag(word_tokenize(s)) if nltk_pos_map.get(pos_[0], pos_[0]) == pos}
+
+    candidate_words = set()
+    if tagger == 'wordnet':
+        candidate_words = {
+            word for (word, pos_) in pos_tag(word_tokenize(s)) if nltk_pos_map.get(pos_[0], pos_[0]) == pos
+        }
+    elif tagger == 'spacy':
+        candidate_words = {str(word) for word in nlp(s) if spacy_pos_map.get(word.pos_, word.pos_) == pos}
+    else:
+        print("[ERROR]: Only legal options for 'tagger' parameter are wordnet and spacy!")
+        exit(1)
+
     indicative_sentence = " ".join(list(map(lambda x: '[BLANK]' if x in candidate_words else x, s.split())))
+    print(indicative_sentence)
+    print(candidate_words)
 
     return indicative_sentence
 
@@ -97,7 +120,7 @@ class CounterfactualGenerator:
             if src_sentence is not None:
                 print("[ERROR]: Only one of source file, source sentence can be given!")
                 exit(1)
-            self.sentences = pd.read_csv(src_file, delimiter=self.separator)
+            self.sentences = pd.read_csv(src_file, delimiter=self.separator).head()
             self.dest_file = src_file if dest_file is None else dest_file
 
             # if indicative sentences are not in the source file, then pos dictates what words to change
@@ -106,7 +129,7 @@ class CounterfactualGenerator:
                     print("[ERROR]: Indicative Sentences and pos cannot be both None!")
                     exit(1)
                 self.sentences['Indicative_Sentences'] = self.sentences['Source_Sentences'].apply(
-                    lambda x: create_indicative_sentence(x, self.pos))
+                    lambda x: create_indicative_sentence(x, self.pos, tagger='spacy'))
 
         # editor that will perform the necessary changes to src_sentence or src_sentences
         self.editor = DummyEditor(pos=self.pos, synonyms=self.synonyms)
