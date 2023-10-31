@@ -50,15 +50,10 @@ def sent_scoring(model, tokenizer, text, cuda=False):
     assert model is not None
     assert tokenizer is not None
 
-    tokens = tokenizer.encode(text, add_special_tokens=False, max_length=600, return_tensors="pt")
+    tokens = tokenizer.encode(text, add_special_tokens=False, return_tensors="pt")
 
     if cuda:
-        try:
-            tokens.to('cuda')
-        except ValueError:
-            pass
-        except RuntimeError:
-            pass
+        tokens.to('cuda')
 
     with torch.no_grad():
         outputs = model(tokens, labels=tokens)
