@@ -11,8 +11,8 @@ import pandas as pd
 from joblib import Parallel, delayed
 from pylev import levenshtein as lev_dist
 
-from gpt2_functions import *
-from graph_functions import *
+from utils.gpt2_functions import *
+from utils.graph_functions import *
 
 
 def adversarial_success(original_output, counterfactual_output):
@@ -47,16 +47,19 @@ def get_fluency(data, counter_data, model, tokenizer):
     assert len(sentences) == len(counter_sentences)
 
     # compute average fluency
-    cuda = torch.cuda.is_available()
+    cuda = not torch.cuda.is_available()
     sent_pairs = zip(sentences, counter_sentences)
 
     avg_fluency, counter = 0, 0
     for x in tqdm(sent_pairs):
         if len(x[0]) <= 1024 and len(x[1]) <= 1024:
-            pair_fluency = abs(sent_scoring(model, tokenizer, x[0], cuda=cuda)[0] -
-                               sent_scoring(model, tokenizer, x[1], cuda=cuda)[0])
-            avg_fluency += pair_fluency if pair_fluency is not None else 0
-            counter += 1
+            try:
+                pair_fluency = abs(sent_scoring(model, tokenizer, x[0], cuda=cuda)[0] -
+                                   sent_scoring(model, tokenizer, x[1], cuda=cuda)[0])
+                avg_fluency += pair_fluency if pair_fluency is not None else 0
+                counter += 1
+            except RuntimeError:
+                continue
 
     # avg_fluency = sum(
     #     Parallel(n_jobs=-3)(
@@ -73,9 +76,6 @@ def get_fluency(data, counter_data, model, tokenizer):
     #             lambda x: (len(x[0]) <= 1024 and len(x[1]) <= 1024))(x) for x in sent_pairs
     #     )
     # )
-
-    print("Average fluency: {}".format(avg_fluency))
-    print("Counter: {}".format(counter))
 
     return avg_fluency / counter
 
