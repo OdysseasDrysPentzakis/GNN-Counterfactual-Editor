@@ -26,11 +26,13 @@ Example:
 import os
 import argparse
 import torch.cuda
-
+import warnings
 from evaluate import load
 from datetime import datetime
 
 from utils.evaluation_metrics import *
+
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 class Evaluator:
@@ -63,7 +65,7 @@ class Evaluator:
         print("[INFO]: Evaluating counterfactuals...")
 
         if self.metric == 'fluency':
-            model, tokenizer = model_init('gpt2', cuda=torch.cuda.is_available())
+            model, tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
             fluency = get_fluency(self.sents, self.counter_sents, model, tokenizer)
             print("\nFluency: {}".format(fluency))
 
@@ -77,7 +79,7 @@ class Evaluator:
             print("\nCloseness: {}".format(closeness))
 
         elif self.metric == 'all':
-            model, tokenizer = model_init('gpt2', cuda=torch.cuda.is_available())
+            model, tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
             fluency = get_fluency(self.sents, self.counter_sents, model, tokenizer)
             del model
             del tokenizer
