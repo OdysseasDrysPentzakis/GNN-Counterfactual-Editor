@@ -1,4 +1,4 @@
-from evaluation_metrics import *
+from utils.evaluation_metrics import *
 
 
 def update_edges(edges, substitutions, lr, baseline_metric_value, current_metric_value):
