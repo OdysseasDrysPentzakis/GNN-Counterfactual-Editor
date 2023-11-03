@@ -1,7 +1,7 @@
 """
 Created 1 November 2023
 @author: Dimitris Lymperopoulos
-Description: A script containing a dummy counterfactual editor class that uses ConceptNet and WordNet
+Description: A script containing a counterfactual editor class that uses a bipartite graph to create edits
 """
 
 import warnings
@@ -96,7 +96,6 @@ class GraphEditor:
 if __name__ == '__main__':
 
     # parameters initialization
-    model, tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
     sents = pd.read_csv("../Data/NEWSGROUPS/test/newsgroups_test.csv")[["text"]].head(10)
     POS = 'adv'
     ANTONYMS = True
@@ -109,6 +108,7 @@ if __name__ == '__main__':
 
     generated_edits = editor.pipeline()
 
+    model, tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
     print("Fluency: {}\n".format(get_fluency(sents, generated_edits, model, tokenizer)))
 
     for pair in zip(sents.values.tolist(), generated_edits.values.tolist()):
