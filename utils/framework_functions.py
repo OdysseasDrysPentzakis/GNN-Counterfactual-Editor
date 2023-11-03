@@ -1,4 +1,5 @@
 from utils.evaluation_metrics import *
+from evaluate import load
 
 
 def update_edges(edges, substitutions, lr, baseline_metric_value, current_metric_value):
@@ -188,7 +189,7 @@ def train_graph(graph_dict, data, pos, eval_metric, preprocessor=None, model=Non
     :param graph_dict: a dictionary containing the bipartite graph along with other variables and characteristics
     :param data: a dataframe containing the textual examples we will use to train the graph
     :param pos: a string specifing which part-of-speech shall be considered for substitutions (noun, verb, adv)
-    :param eval_metric: a function that computes the metric which must be optimized during fine-tuning
+    :param eval_metric: a string that represents the metric which must be optimized during fine-tuning
     :param preprocessor: a custom class that implements the necessary preprocessing of the data
     :param model: a pretrained model on the dataset
     :param learning_rate: float value defining how fast or slow the edge weights will be updated
@@ -212,42 +213,87 @@ def train_graph(graph_dict, data, pos, eval_metric, preprocessor=None, model=Non
 
     iterations = 0
     next_baseline_metric = baseline_metric
+    fluency_model, fluency_tokenizer, bertscore = None, None, None
+
+    if eval_metric == 'fluency':
+        fluency_model, fluency_tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
+    elif eval_metric == 'bertscore':
+        bertscore = load("bertscore")
+    elif eval_metric == 'fluency_bertscore':
+        model, tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
+        bertscore = load("bertscore")
+    elif eval_metric == 'closeness':
+        pass
+    else:
+        raise AttributeError("eval_metric '{}' is not supported!".format(eval_metric))
 
     while abs(current_metric - baseline_metric) >= th and iterations < max_iterations:
         print("ITERATION {}".format(iterations))
 
-        updated_edges = []
+        # updated_edges = []
         baseline_metric = next_baseline_metric
 
-        while nx.is_bipartite(graph_dict['graph']):
-            try:
-                counter_data, selected_edges, substitutions = generate_counterfactuals(graph_dict, data, pos)
+        counter_data, selected_edges, substitutions = generate_counterfactuals(graph_dict, data, pos)
 
-                if not model_required:
-                    # compute current_metric valule
-                    current_metric = eval_metric(data, counter_data)
+        if not model_required:
+            # compute current_metric valule
+            if eval_metric == 'fluency':
+                current_metric = get_fluency(data, counter_data, fluency_model, fluency_tokenizer)
+            elif eval_metric == 'bertscore':
+                current_metric = get_bertscore(data, counter_data, bertscore)
+            elif eval_metric == 'fluency_bertscore':
+                fluency = get_fluency(data, counter_data, fluency_model, fluency_tokenizer)
+                bscore = get_bertscore(data, counter_data, bertscore)
+                current_metric = 2 * fluency * bscore / (fluency + bscore)
+            elif eval_metric == 'closeness':
+                current_metric = get_closeness(data, counter_data)
+            else:
+                pass
 
-                else:
-                    processed_counter_data = preprocessor.process(counter_data)
-                    counter_preds = model.predict(processed_counter_data)
+        else:
+            processed_counter_data = preprocessor.process(counter_data)
+            counter_preds = model.predict(processed_counter_data)
 
-                    # compute model-related current_metric value
-                    current_metric = eval_metric(original_preds, counter_preds)
-
-                g = graph_dict['graph']
-                g.remove_edges_from(selected_edges)
-                new_edges = update_edges(selected_edges, substitutions, learning_rate, baseline_metric, current_metric)
-
-                graph_dict['graph'] = g
-                updated_edges.extend(new_edges)
-            except:
-                graph_dict['graph'] = g
-                break
+            # compute model-related current_metric value
+            current_metric = eval_metric(original_preds, counter_preds)
 
         g = graph_dict['graph']
-        g.add_weighted_edges_from(updated_edges)
+        g.remove_edges_from(selected_edges)
+        new_edges = update_edges(selected_edges, substitutions, learning_rate, baseline_metric, current_metric)
+        g.add_weighted_edges_from(new_edges)
         graph_dict['graph'] = g
 
+        ##############################################################################################################
+        # while nx.is_bipartite(graph_dict['graph']):
+        #     try:
+        #         counter_data, selected_edges, substitutions = generate_counterfactuals(graph_dict, data, pos)
+        #
+        #         if not model_required:
+        #             # compute current_metric valule
+        #             current_metric = eval_metric(data, counter_data)
+        #
+        #         else:
+        #             processed_counter_data = preprocessor.process(counter_data)
+        #             counter_preds = model.predict(processed_counter_data)
+        #
+        #             # compute model-related current_metric value
+        #             current_metric = eval_metric(original_preds, counter_preds)
+        #
+        #         g = graph_dict['graph']
+        #         g.remove_edges_from(selected_edges)
+        #         new_edges = update_edges(selected_edges, substitutions, learning_rate, baseline_metric,
+        #         current_metric)
+        #
+        #         graph_dict['graph'] = g
+        #         updated_edges.extend(new_edges)
+        #     except:
+        #         graph_dict['graph'] = g
+        #         break
+        #
+        # g = graph_dict['graph']
+        # g.add_weighted_edges_from(updated_edges)
+        # graph_dict['graph'] = g
+        ##############################################################################################################
         # update baseline_metric value and iterations
         next_baseline_metric = min(baseline_metric, current_metric)
         iterations += 1

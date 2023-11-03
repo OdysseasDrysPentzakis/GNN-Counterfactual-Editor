@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 # Metric-related imports
+from evaluate import load
 from joblib import Parallel, delayed
 from pylev import levenshtein as lev_dist
 
@@ -155,7 +156,7 @@ def get_baseline_metric(data, pos, eval_metric, model_required=False, preprocess
 
     :param data: pd.DataFrame() containing one column with the textual data
     :param pos: string that specifies which part-of-speech shall be considered for substitution (noun, verb, adv)
-    :param eval_metric: a function that computes the metric which must be optimized during fine-tuning
+    :param eval_metric: a string that represents the metric which must be optimized during fine-tuning
     :param model_required: boolean value specifing whether a pretrained model is also required for the metric
     computation
     :param preprocessor: a custom class that implements the necessary preprocessing of the data
@@ -164,18 +165,42 @@ def get_baseline_metric(data, pos, eval_metric, model_required=False, preprocess
     :returns: a float value representing the computed evaluation metric
     """
 
+    # create counter sentences
     sents = [elem[0] for elem in data.values.tolist()]
     counter_sents, _, _, _ = get_edits(sents, pos=pos, thresh=3, antonyms=antonyms)
 
+    # convert them to a dataframe
     counter_data_df = pd.DataFrame({
         'counter_sents': counter_sents
     })
 
-    # print('Generating Model Agnostic Metrics...')
-    # metrics = generate_model_agnostic_metrics(data, counter_data_df)
+    # initialize the required parameters of the evaluation metric function
+    fluency_model, fluency_tokenizer, bertscore = None, None, None
+    if eval_metric == 'fluency':
+        fluency_model, fluency_tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
+    elif eval_metric == 'bertscore':
+        bertscore = load("bertscore")
+    elif eval_metric == 'fluency_bertscore':
+        model, tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
+        bertscore = load("bertscore")
+    elif eval_metric == 'closeness':
+        pass
+    else:
+        raise AttributeError("eval_metric '{}' is not supported!".format(eval_metric))
 
+    # compute the specified metric
     if not model_required:
-        return eval_metric(data, counter_data_df), counter_data_df
+
+        if eval_metric == 'fluency':
+            return get_fluency(data, counter_data_df, fluency_model, fluency_tokenizer), counter_data_df
+        elif eval_metric == 'bertscore':
+            return get_bertscore(data, counter_data_df, bertscore), counter_data_df
+        elif eval_metric == 'fluency_bertscore':
+            fluency = get_fluency(data, counter_data_df, fluency_model, fluency_tokenizer)
+            bscore = get_bertscore(data, counter_data_df, bertscore)
+            return 2 * fluency * bscore / (fluency + bscore), counter_data_df
+        elif eval_metric == 'closeness':
+            return get_closeness(data, counter_data_df), counter_data_df
 
     else:
         # first process the original data and get model predictions
@@ -187,5 +212,3 @@ def get_baseline_metric(data, pos, eval_metric, model_required=False, preprocess
         counter_preds = model.predict(processed_counter_data)
 
         return eval_metric(original_preds, counter_preds), counter_data_df
-
-
