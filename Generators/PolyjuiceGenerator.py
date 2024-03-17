@@ -7,6 +7,7 @@ Description: A script containing a counterfactual generator class that uses Poly
 import os
 import torch
 import argparse
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from datetime import datetime
@@ -51,7 +52,7 @@ class PolyjuiceGenerator:
 
         for s in tqdm(self.sentences):
             perturbations = self.model.perturb(s, num_perturbations=1)
-            self.counter_sentences.append(perturbations[0] if perturbations else s)
+            self.counter_sentences.append(perturbations[0] if perturbations else np.nan)
 
         return self
 
