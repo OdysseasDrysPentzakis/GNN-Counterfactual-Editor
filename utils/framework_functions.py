@@ -204,7 +204,7 @@ def train_graph(graph_dict, data, pos, eval_metric, preprocessor=None, model=Non
     if baseline_metric is None:
         baseline_metric = get_baseline_metric(data, pos=pos, eval_metric=eval_metric, model_required=model_required,
                                               preprocessor=preprocessor, model=model)[0]
-    current_metric = baseline_metric + 2 * th
+    current_metric = baseline_metric + 2 * th   # use - for metric that needs to be maximized
 
     original_preds = None
     if model_required:
@@ -299,8 +299,9 @@ def train_graph(graph_dict, data, pos, eval_metric, preprocessor=None, model=Non
         # g.add_weighted_edges_from(updated_edges)
         # graph_dict['graph'] = g
         ##############################################################################################################
+
         # update baseline_metric value and iterations
-        next_baseline_metric = min(baseline_metric, current_metric)
+        next_baseline_metric = min(baseline_metric, current_metric)   # use max for metric that needs to be maximized
         iterations += 1
 
     return graph_dict
