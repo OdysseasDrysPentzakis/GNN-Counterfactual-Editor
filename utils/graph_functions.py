@@ -1,3 +1,5 @@
+import math
+
 import spacy
 import tqdm
 import re
@@ -412,7 +414,7 @@ def external_swaps(sentences, pos, substitution_singular, d0_s, d1_s, thresh=100
     :param substitution_singular: an iterable with the possible substitutions
     :param d0_s: a list containing the nodes (words) of the source set of the bipartite graph
     :param d1_s: a list containing the nodes (words) of the target set of the bipartite graph
-    :param thresh: Integer representing how many substitutions in each sentence shall occurr
+    :param thresh: Integer representing how many substitutions in each sentence shall occur
     :returns: a triplet containing the swaps that were made, a list denoting which sentences were changed and how
     many attributes were changed
     """
@@ -424,7 +426,7 @@ def external_swaps(sentences, pos, substitution_singular, d0_s, d1_s, thresh=100
     for s in tqdm(sentences):
         change = 0
         txt = s.lower().replace('\\n', '')
-
+        opt_threshold = math.ceil(len(s.split()) * 0.2)  # 20% of the words in the sentence
         # according to the pos given, use the appropriate function to create the list with candidate words to be
         # substituted
         if pos == 'adv':
@@ -438,8 +440,8 @@ def external_swaps(sentences, pos, substitution_singular, d0_s, d1_s, thresh=100
             raise AttributeError("pos '{}' is not supported!".format(pos))
 
         # crop candidate list if it is larger than the threshold given
-        if len(candidate_list) > thresh:
-            candidate_list = candidate_list[:thresh]
+        if len(candidate_list) > opt_threshold:
+            candidate_list = candidate_list[:opt_threshold]
 
         # perform substitutions
         # for i in substitution_singular:
