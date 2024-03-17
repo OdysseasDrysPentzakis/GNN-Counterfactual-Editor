@@ -1,31 +1,31 @@
 """
 Created 10 May 2023
 @author: Dimitris Lymperopoulos
-Description: A script that generates counterfactual explanations for a given sentence or sentences
+Description: A script that generates dummy counterfactual explanations for a given sentence or sentences
 
 Usage:
 1)  Generate a counterfactual sentence for a single given source_sentence, using synonyms as replacements
-    python3 CounterfactualGenerator.py
+    python3 DummyGenerator.py
         --src-sentence <a string representing the original sentence>
         --indicative-sentence < a string indicating which words should be changed in the original sentence>
         --synonyms
         [--pos  <['n', 'a', 'v', 'r', 's'], represents part-of-speech of words that will be changed>]
 
 2)  Generate counterfactual sentences based on a given source file and store the results in a destination file
-    python3 CounterfactualGenerator.py
+    python3 DummyGenerator.py
         --src-file <.csv file containing two columns: Source_Sentences,Indicative_Sentences>
         [--dest-file < .csv file in which the generated sentences will be stored - default is src_file>]
         [--sep < a string representing the separator of the src_file - default is comma(',')>]
 
 Example:
 1)
-    python3 CounterfactualGenerator.py
+    python3 DummyGenerator.py
         --src-sentence "A beautiful movie with great plot and interesting characters!"
         --indicative-sentence "A [BLANK] movie with [BLANK] plot and [BLANK] characters!"
         --synonyms
 
 2)
-    python3 CounterfactualGenerator.py
+    python3 DummyGenerator.py
         --src-file ~/sentences.csv
         --dest-file ~/generated_sentences.csv
         --sep "|"
@@ -83,7 +83,7 @@ def create_indicative_sentence(s, pos, tagger='wordnet'):
     return indicative_sentence
 
 
-class CounterfactualGenerator:
+class DummyGenerator:
     def __init__(self, src_file=None, src_sentence=None, indicative_sentence=None, dest_file=None, separator=None,
                  pos=None, synonyms=None):
         """
@@ -219,11 +219,11 @@ def parse_input(args=None):
 def main(args):
     start_time = datetime.now()
 
-    cf_generator = CounterfactualGenerator(src_file=args.src_file, dest_file=args.dest_file,
-                                           src_sentence=args.src_sentence, indicative_sentence=args.indicative_sentence,
-                                           separator=args.sep, pos=args.pos, synonyms=args.synonyms)
+    dg = DummyGenerator(src_file=args.src_file, dest_file=args.dest_file, src_sentence=args.src_sentence,
+                        indicative_sentence=args.indicative_sentence, separator=args.sep, pos=args.pos,
+                        synonyms=args.synonyms)
 
-    cf_generator.pipeline()
+    dg.pipeline()
 
     print("\n\nScript execution time: " + str(datetime.now() - start_time))
 
