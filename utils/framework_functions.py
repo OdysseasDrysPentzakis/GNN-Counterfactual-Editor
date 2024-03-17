@@ -259,7 +259,7 @@ def train_graph(graph_dict, data, pos, eval_metric, preprocessor=None, model=Non
             current_metric = eval_metric(original_preds, counter_preds)
 
         # for sample information
-        if iterations % 10 == 0:
+        if iterations % 5 == 0:
             print(f"Current metric value: {current_metric}")
 
         g = graph_dict['graph']
