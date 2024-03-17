@@ -53,7 +53,7 @@ def get_fluency(data, counter_data, model, tokenizer):
 
     avg_fluency, counter = 0, 0
     for x in tqdm(sent_pairs):
-        if len(x[0]) <= 1024 and len(x[1]) <= 1024:
+        if type(x[1]) != float and len(x[0]) <= 1024 and len(x[1]) <= 1024:
             try:
                 pair_fluency = abs(sent_scoring(model, tokenizer, x[0], cuda=cuda)[0] -
                                    sent_scoring(model, tokenizer, x[1], cuda=cuda)[0])
@@ -81,25 +81,33 @@ def get_fluency(data, counter_data, model, tokenizer):
     return avg_fluency / counter
 
 
-def get_closeness(data, counter_data):
+def get_closeness(data, counter_data, n_jobs=1):
     """
     A function that takes as input the original and the counter data and returns the average levenshtein
     distance as a measure of closeness between the sentence pairs
 
     :param data: dataframe containing one column with the original data
     :param counter_data: dataframe containing one column with the counter data
+    :param n_jobs: an integer value specifying the number of parallel jobs to be used
     :returns: float value representing the average levenshtein distance
     """
 
     # extract sentences and counter-sentences from the data and check that they are of the same length
-    sentences = [elem[0] for elem in data.values.tolist()]
-    counter_sentences = [elem[0] for elem in counter_data.values.tolist()]
+    dirty_sentences = [elem[0] for elem in data.values.tolist()]
+    dirty_counter_sentences = [elem[0] for elem in counter_data.values.tolist()]
+
+    # filter out sentences where the counter sentence is NaN
+    sentences, counter_sentences = [], []
+    for idx in range(len(dirty_sentences)):
+        if type(dirty_counter_sentences[idx]) != float:
+            sentences.append(dirty_sentences[idx])
+            counter_sentences.append(dirty_counter_sentences[idx])
 
     assert len(sentences) == len(counter_sentences)
 
     # compute average levenshtein distance as a measurement of closeness
-    avg_lev = sum(Parallel(n_jobs=-1)(delayed(lev_dist)(x[0], x[1]) for x in zip(sentences, counter_sentences))) / len(
-        sentences)
+    avg_lev = sum(Parallel(n_jobs=n_jobs)(delayed(lev_dist)(x[0], x[1]) for x in zip(sentences, counter_sentences) if
+                  type(x[1]) != float)) / len(sentences)
 
     return avg_lev
 
@@ -116,8 +124,15 @@ def get_bertscore(data, counter_data, bertscore):
     """
 
     # extract sentences and counter-sentences from the data and check that they are of the same length
-    sentences = [elem[0] for elem in data.values.tolist()]
-    counter_sentences = [elem[0] for elem in counter_data.values.tolist()]
+    dirty_sentences = [elem[0] for elem in data.values.tolist()]
+    dirty_counter_sentences = [elem[0] for elem in counter_data.values.tolist()]
+
+    # filter out sentences where the counter sentence is NaN
+    sentences, counter_sentences = [], []
+    for idx in range(len(dirty_sentences)):
+        if type(dirty_counter_sentences[idx]) != float:
+            sentences.append(dirty_sentences[idx])
+            counter_sentences.append(dirty_counter_sentences[idx])
 
     assert len(sentences) == len(counter_sentences)
 
@@ -129,13 +144,14 @@ def get_bertscore(data, counter_data, bertscore):
     return avg_bertscore
 
 
-def get_flip_rate(original_p, counter_p):
+def get_flip_rate(original_p, counter_p, n_jobs=1):
     """
     A function that takes as input the original predictions and the new ones, and returns the
     flip-rate as a percentage.
 
     :param original_p: list containing the predictions for the original data
     :param counter_p: dataframe containing the predictions for the counter data
+    :param n_jobs: an integer value specifying the number of parallel jobs to be used
     :returns: dictionary containing model-related metrics
     """
 
@@ -144,7 +160,8 @@ def get_flip_rate(original_p, counter_p):
 
     # compute flip_rate
     flip_rate_percent = sum(
-        Parallel(n_jobs=-1)(delayed(lambda x: x[0] != x[1])(x) for x in zip(original_p, counter_p))) / len(original_p)
+        Parallel(n_jobs=n_jobs)(delayed(lambda x: x[0] != x[1])(x) for x in zip(original_p, counter_p))) / len(
+        original_p)
 
     return flip_rate_percent
 
