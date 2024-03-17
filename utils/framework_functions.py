@@ -20,9 +20,8 @@ def update_edges(edges, substitutions, lr, baseline_metric_value, current_metric
         try:
             # get substitution occurences for each edge
             edge_subs = substitutions[(u, v)]
-            # updating formula
-            new_w = w - lr * (
-                        baseline_metric_value - current_metric_value) / edge_subs  # - for minimizing, + for maximizing
+            # updating formula: Use - for minimizing, + for maximizing
+            new_w = w - lr * (baseline_metric_value - current_metric_value) / edge_subs
             # add the updated edge to the list
             updated_edges.append((u, v, new_w))
         except KeyError:
@@ -235,6 +234,8 @@ def train_graph(graph_dict, data, pos, eval_metric, preprocessor=None, model=Non
 
         counter_data, selected_edges, substitutions = generate_counterfactuals(graph_dict, data, pos)
 
+        print("Evaluating edits...")
+
         if not model_required:
             # compute current_metric valule
             if eval_metric == 'fluency':
@@ -256,6 +257,10 @@ def train_graph(graph_dict, data, pos, eval_metric, preprocessor=None, model=Non
 
             # compute model-related current_metric value
             current_metric = eval_metric(original_preds, counter_preds)
+
+        # for sample information
+        if iterations % 10 == 0:
+            print(f"Current metric value: {current_metric}")
 
         g = graph_dict['graph']
         g.remove_edges_from(selected_edges)
