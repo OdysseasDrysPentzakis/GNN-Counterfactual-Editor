@@ -39,7 +39,7 @@ class PolyjuiceGenerator:
         self.model = Polyjuice(model_path='uw-hai/polyjuice', is_cuda=self.cuda)
 
         self.dest_csv = 'polyjuice_edits.csv' if dest_csv is None else dest_csv
-        self.counter_sentences = None
+        self.counter_sentences = []
 
     def generate_counterfactuals(self):
         """
@@ -51,8 +51,11 @@ class PolyjuiceGenerator:
         print("[INFO]: Generating Counterfactuals...")
 
         for s in tqdm(self.sentences):
-            perturbations = self.model.perturb(s, num_perturbations=1)
-            self.counter_sentences.append(perturbations[0] if perturbations else np.nan)
+            try:
+                perturbations = self.model.perturb(s, num_perturbations=1)
+                self.counter_sentences.append(perturbations[0] if perturbations else np.nan)
+            except IndexError:
+                self.counter_sentences.append(np.nan)
 
         return self
 
