@@ -44,17 +44,26 @@ def create_graph(data, pos, antonyms=False):
     sentences = [elem[0] for elem in data.values.tolist()]
 
     # use appropriate function based on pos to get the list of the specified pos words from the data
-    if pos == 'adv':
-        lst = create_attributes_list(sentences)
-    elif pos == 'verb':
-        lst = create_verb_list(sentences)
-    elif pos == 'noun':
-        lst = create_singular_list(sentences)
-    else:
-        raise AttributeError("pos '{}' is not supported!".format(pos))
+    if pos is not None:
+        if pos == 'adv':
+            lst = create_attributes_list(sentences)
+        elif pos == 'verb':
+            lst = create_verb_list(sentences)
+        elif pos == 'noun':
+            lst = create_singular_list(sentences)
+        else:
+            raise AttributeError("pos '{}' is not supported!".format(pos))
 
-    syn0 = list(lst)
-    syn1 = list(get_antonym_list(lst)) if antonyms else list(lst)
+        syn0 = list(lst)
+        syn1 = get_antonym_list(lst)
+
+    else:
+        adv_lst = create_attributes_list(sentences)
+        verb_lst = create_verb_list(sentences)
+        noun_lst = create_singular_list(sentences)
+
+        syn0 = list(adv_lst.extend(verb_lst).extend(noun_lst))
+        syn1 = get_antonym_list(syn0) if antonyms else syn0
 
     all_syn0, d0, ind0 = get_synsets(syn0, pos=pos, return_index=True)
     all_syn1, d1, ind1 = get_synsets(syn1, pos=pos, return_index=True)
@@ -267,38 +276,6 @@ def train_graph(graph_dict, data, pos, eval_metric, preprocessor=None, model=Non
         new_edges = update_edges(selected_edges, substitutions, learning_rate, baseline_metric, current_metric)
         g.add_weighted_edges_from(new_edges)
         graph_dict['graph'] = g
-
-        ##############################################################################################################
-        # while nx.is_bipartite(graph_dict['graph']):
-        #     try:
-        #         counter_data, selected_edges, substitutions = generate_counterfactuals(graph_dict, data, pos)
-        #
-        #         if not model_required:
-        #             # compute current_metric valule
-        #             current_metric = eval_metric(data, counter_data)
-        #
-        #         else:
-        #             processed_counter_data = preprocessor.process(counter_data)
-        #             counter_preds = model.predict(processed_counter_data)
-        #
-        #             # compute model-related current_metric value
-        #             current_metric = eval_metric(original_preds, counter_preds)
-        #
-        #         g = graph_dict['graph']
-        #         g.remove_edges_from(selected_edges)
-        #         new_edges = update_edges(selected_edges, substitutions, learning_rate, baseline_metric,
-        #         current_metric)
-        #
-        #         graph_dict['graph'] = g
-        #         updated_edges.extend(new_edges)
-        #     except:
-        #         graph_dict['graph'] = g
-        #         break
-        #
-        # g = graph_dict['graph']
-        # g.add_weighted_edges_from(updated_edges)
-        # graph_dict['graph'] = g
-        ##############################################################################################################
 
         # update baseline_metric value and iterations
         next_baseline_metric = min(baseline_metric, current_metric)   # use max for metric that needs to be maximized
