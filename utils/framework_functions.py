@@ -2,7 +2,7 @@ from utils.evaluation_metrics import *
 from evaluate import load
 
 
-def update_edges(edges, substitutions, lr, baseline_metric_value, current_metric_value):
+def update_edges(edges, substitutions, lr, baseline_metric_value, current_metric_value, maximize):
     """
     A function that takes as input a list of weighted edges along with other parameters, and uses
     these parameters to update the edge weights.
@@ -12,6 +12,7 @@ def update_edges(edges, substitutions, lr, baseline_metric_value, current_metric
     :param lr: float value, representing the learning rate for the weight updating
     :param baseline_metric_value: a float, representing the baseline evaluation metric value
     :param current_metric_value: a float, representing the current evaluation metric value
+    :param maximize: a boolean value defining whether to maximize or minimize the evaluation metric
     :returns: a list of tuples, where each tuple represents an updated weighted edge
     """
 
@@ -21,7 +22,9 @@ def update_edges(edges, substitutions, lr, baseline_metric_value, current_metric
             # get substitution occurences for each edge
             edge_subs = substitutions[(u, v)]
             # updating formula: Use - for minimizing, + for maximizing
-            new_w = w - lr * (baseline_metric_value - current_metric_value) / edge_subs
+            delta = lr * (baseline_metric_value - current_metric_value) / edge_subs
+            new_w = (w + delta) if maximize else (w - delta)
+
             # add the updated edge to the list
             updated_edges.append((u, v, new_w))
         except KeyError:
@@ -187,8 +190,8 @@ def generate_counterfactuals(graph_dict, data, pos):
     return counter_data, selected_edges, subs_as_nodes
 
 
-def train_graph(graph_dict, data, pos, eval_metric, preprocessor=None, model=None, learning_rate=0.1, th=0.005,
-                max_iterations=100, model_required=False, baseline_metric=None):
+def train_graph(graph_dict, data, pos, eval_metric, maximize, preprocessor=None, model=None, learning_rate=0.1, th=0.005,
+                max_iterations=100, model_required=False, baseline_metric=None, ):
     """
     A function that represents the training process for the graph edges. It gets predictions for the original data
     then uses a graph approach to generate counter data and get predictions for them. To get the current_metric
@@ -198,6 +201,7 @@ def train_graph(graph_dict, data, pos, eval_metric, preprocessor=None, model=Non
     :param data: a dataframe containing the textual examples we will use to train the graph
     :param pos: a string specifing which part-of-speech shall be considered for substitutions (noun, verb, adv)
     :param eval_metric: a string that represents the metric which must be optimized during fine-tuning
+    :param maximize: a boolean value definining whether to maximize or minimize the evaluation metric
     :param preprocessor: a custom class that implements the necessary preprocessing of the data
     :param model: a pretrained model on the dataset
     :param learning_rate: float value defining how fast or slow the edge weights will be updated
@@ -213,7 +217,7 @@ def train_graph(graph_dict, data, pos, eval_metric, preprocessor=None, model=Non
     if baseline_metric is None:
         baseline_metric = get_baseline_metric(data, pos=pos, eval_metric=eval_metric, model_required=model_required,
                                               preprocessor=preprocessor, model=model)[0]
-    current_metric = baseline_metric + 2 * th   # use - for metric that needs to be maximized
+    current_metric = baseline_metric - ((2 * th) if maximize else (-2 * th))
 
     original_preds = None
     if model_required:
@@ -273,12 +277,14 @@ def train_graph(graph_dict, data, pos, eval_metric, preprocessor=None, model=Non
 
         g = graph_dict['graph']
         g.remove_edges_from(selected_edges)
-        new_edges = update_edges(selected_edges, substitutions, learning_rate, baseline_metric, current_metric)
+        new_edges = update_edges(selected_edges, substitutions, learning_rate, baseline_metric, current_metric,
+                                 maximize)
         g.add_weighted_edges_from(new_edges)
         graph_dict['graph'] = g
 
         # update baseline_metric value and iterations
-        next_baseline_metric = min(baseline_metric, current_metric)   # use max for metric that needs to be maximized
+        next_baseline_metric = max(baseline_metric, current_metric) if maximize else min(
+            baseline_metric, current_metric)
         iterations += 1
 
     return graph_dict
