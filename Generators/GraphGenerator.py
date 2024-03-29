@@ -63,7 +63,7 @@ from Editors.GraphEditor import GraphEditor
 
 class GraphGenerator:
     def __init__(self, src_file=None, col=None, dest_file=None, pos=None, antonyms=None, baseline=None, metric=None,
-                 max_iter=None, thresh=None):
+                 maximize=None, max_iter=None, thresh=None):
         """
         A class that generates counterfactuals using a bipartite graph.
         :param src_file: string(filepath) representing the source csv file containing the original sentences
@@ -100,6 +100,8 @@ class GraphGenerator:
             exit(1)
         self.metric = metric
 
+        self.maximize = maximize
+
         self.max_iter = 100 if max_iter is None else int(max_iter)
         self.thresh = 0.005 if thresh is None else float(thresh)
         self.dest_file = 'graph_edits.csv' if dest_file is None else dest_file
@@ -114,7 +116,8 @@ class GraphGenerator:
 
         print("[INFO]: Generating counterfactuals...")
         editor = GraphEditor(data=self.sentences, pos=self.pos, antonyms=self.antonyms, eval_metric=self.metric,
-                             baseline_metric=self.baseline, max_iter=self.max_iter, thresh=self.thresh)
+                             baseline_metric=self.baseline, maximize=self.maximize, max_iter=self.max_iter,
+                             thresh=self.thresh)
         self.edits = editor.pipeline()
 
         return self
@@ -163,6 +166,8 @@ def parse_input(args=None):
     parser.add_argument("-m", "--metric", choices=['fluency', 'bertscore', 'closeness', 'fluency_bertscore'],
                         action='store', metavar="metric", required=True,
                         help="The metric to be used for evaluation")
+    parser.add_argument("--maximize", action='store_true', required=False,
+                        help="whether to maximize or minimize the evaluation metric")
     parser.add_argument("--max-iter", action='store', metavar="max_iter", required=False,
                         help="The maximum number of iterations when training the bipartite graph")
     parser.add_argument("--thresh", action='store', metavar="thresh", required=False,
@@ -176,7 +181,7 @@ def main(args):
 
     generator = GraphGenerator(src_file=args.src_file, col=args.col, dest_file=args.dest_file, pos=args.pos,
                                antonyms=args.antonyms, baseline=args.baseline, metric=args.metric,
-                               max_iter=args.max_iter, thresh=args.thresh)
+                               maximize=args.maximize, max_iter=args.max_iter, thresh=args.thresh)
 
     generator.pipeline()
 
