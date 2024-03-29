@@ -443,22 +443,6 @@ def external_swaps(sentences, pos, substitution_singular, d0_s, d1_s, thresh=100
         if len(candidate_list) > opt_threshold:
             candidate_list = candidate_list[:opt_threshold]
 
-        # perform substitutions
-        # for i in substitution_singular:
-        #     if d0_s[i[1]] in txt and (d0_s[i[1]] in candidate_list):
-        #         txt=re.sub(r"\b%s\b" % d0_s[i[1]] , d1_s[i[2]], txt)
-        #         change+=1
-        #         attr_counter+=1
-        #         substitutions[(d0_s[i[1]], d1_s[i[2]])] = substitutions.get((d0_s[i[1]], d1_s[i[2]]), 0) + 1
-
-        #     elif d1_s[i[2]] in txt and (d1_s[i[2]] in candidate_list):
-        #         txt = txt.replace(d1_s[i[2]], d0_s[i[1]])
-        #         txt=re.sub(r"\b%s\b" % d1_s[i[2]] , d0_s[i[1]], txt)
-        #         change+=1
-        #         attr_counter+=1
-        #         #substitutions[(d1_s[i[1]], d0_s[i[2]])] = substitutions.get((d1_s[i[1]], d0_s[i[2]]), 0) + 1
-        #         substitutions[(d0_s[i[1]], d1_s[i[2]])] = substitutions.get((d0_s[i[1]], d1_s[i[2]]), 0) + 1
-
         for c in candidate_list:
             sub_word = substitution_singular.get(c, c)
             if c != sub_word:
