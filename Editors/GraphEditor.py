@@ -39,17 +39,18 @@ class GraphEditor:
 
         self.debug = debug
 
-    def create_graph(self):
+    def create_graph(self, starting_weights):
         """
         A method that creates a bipartite graph from the data provided.
 
+        :param starting_weights: a string specifying the starting edge weights of the graph
         :return: GraphEditor object
         """
 
         if self.debug:
             print("[INFO]: Creating graph...")
 
-        self.graph_dict = create_graph(self.data, self.pos, self.antonyms)
+        self.graph_dict = create_graph(self.data, self.pos, self.antonyms, starting_weights=starting_weights)
 
         return self
 
@@ -82,14 +83,15 @@ class GraphEditor:
 
         return counter_data
 
-    def pipeline(self):
+    def pipeline(self, starting_weights=None):
         """
         A method that runs the pipeline of the editor.
 
+        :param starting_weights: a string specifying the starting edge weights of the graph
         :return: a dataframe with the generated counterfactual data
         """
 
-        return self.create_graph().train_graph().generate_counterfactuals()
+        return self.create_graph(starting_weights=starting_weights).train_graph().generate_counterfactuals()
 
 
 if __name__ == '__main__':

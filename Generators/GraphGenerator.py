@@ -24,6 +24,7 @@ Usage:
         [--maximize]
         [--max-iter <maximum number of iterations when training the bipartite graph>]
         [--thresh <threshold for convergence of the graph training process>]
+        [--starting-weights <initial edge weights of biparite graph (equal, rand, wordsim) - default is equal>]
 
 2) Generate counterfactuals and store them to the default location, which is ./graph_edits.csv, while also using
     default values for max_iterations (100) and threshold (0.005). The default value for antonyms is False:
@@ -51,6 +52,7 @@ Example:
         --maximize
         --max-iter 100
         --thresh 0.005
+        --starting-weights rand
 """
 
 import os
@@ -63,7 +65,7 @@ from Editors.GraphEditor import GraphEditor
 
 class GraphGenerator:
     def __init__(self, src_file=None, col=None, dest_file=None, pos=None, antonyms=None, baseline=None, metric=None,
-                 maximize=None, max_iter=None, thresh=None):
+                 maximize=None, max_iter=None, thresh=None, starting_weights=None):
         """
         A class that generates counterfactuals using a bipartite graph.
         :param src_file: string(filepath) representing the source csv file containing the original sentences
@@ -75,6 +77,7 @@ class GraphGenerator:
         :param metric: a string representing the metric that needs to be optimized
         :param max_iter: an integer value indicating max nu,ber of iterations when trainig the bipartite graph
         :param thresh: a float value indicating the threshold for convergence of the graph training process
+        :param starting_weights: a string specifying the starting edge weights of the bipartite graph
         """
 
         if src_file is None:
@@ -101,6 +104,7 @@ class GraphGenerator:
         self.metric = metric
 
         self.maximize = maximize
+        self.starting_weights = starting_weights
 
         self.max_iter = 100 if max_iter is None else int(max_iter)
         self.thresh = 0.005 if thresh is None else float(thresh)
@@ -118,7 +122,7 @@ class GraphGenerator:
         editor = GraphEditor(data=self.sentences, pos=self.pos, antonyms=self.antonyms, eval_metric=self.metric,
                              baseline_metric=self.baseline, maximize=self.maximize, max_iter=self.max_iter,
                              thresh=self.thresh)
-        self.edits = editor.pipeline()
+        self.edits = editor.pipeline(starting_weights=self.starting_weights)
 
         return self
 
@@ -172,6 +176,9 @@ def parse_input(args=None):
                         help="The maximum number of iterations when training the bipartite graph")
     parser.add_argument("--thresh", action='store', metavar="thresh", required=False,
                         help="The threshold for convergence of the graph training process")
+    parser.add_argument("--starting-weights", choices=['equal', 'rand', 'wordsim'], action='store',
+                        metavar='starting_weights', required=False,
+                        help='Strategy for initial computation of graph edge weights')
 
     return parser.parse_args(args)
 
