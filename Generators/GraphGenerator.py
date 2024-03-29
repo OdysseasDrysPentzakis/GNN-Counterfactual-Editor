@@ -5,8 +5,7 @@ Description: A script containing a counterfactual generator class that uses a bi
 
 Usage:
 1) Generate counterfactuals and store them to the default location, which is ./graph_edits.csv, while also using
-    default values for max_iterations (100) and threshold (0.005).The default part-of-speech tag is 'adv' and the
-    default value for antonyms is False:
+    default values for max_iterations (100) and threshold (0.005).The default value for antonyms is False:
     python3 GraphGenerator.py
         --src-file <path_to_src_file>
         --col <name of column with the original sentences>
@@ -21,13 +20,13 @@ Usage:
         [--dest-file <path_to_dest_file>]
         [--pos <part-of-speech tag of words to be substituted>]
         [--antonyms]
-        [--baseline <baseline metric value (minimum value to achieve)>]
+        [--baseline <baseline metric value (minimum/maximum value to achieve)>]
+        [--maximize]
         [--max-iter <maximum number of iterations when training the bipartite graph>]
         [--thresh <threshold for convergence of the graph training process>]
 
 2) Generate counterfactuals and store them to the default location, which is ./graph_edits.csv, while also using
-    default values for max_iterations (100) and threshold (0.005).The default part-of-speech tag is 'adv' and the
-    default value for antonyms is False:
+    default values for max_iterations (100) and threshold (0.005). The default value for antonyms is False:
     python3 GraphGenerator.py
         --src-file <path_to_src_file>
         --col <name of column with the original sentences>
@@ -49,6 +48,7 @@ Example:
         --pos adv
         --antonyms
         --baseline 0.5
+        --maximize
         --max-iter 100
         --thresh 0.005
 """
@@ -88,7 +88,7 @@ class GraphGenerator:
             exit(1)
         self.sentences = pd.read_csv(src_file)[[col]]
 
-        self.pos = 'adv' if pos is None else pos
+        self.pos = pos
         self.antonyms = False if antonyms is None else antonyms
         self.baseline = float(baseline) if baseline is not None else None
 
