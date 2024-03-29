@@ -110,7 +110,7 @@ def get_synsets(syn, pos, return_index=False):
     all_syn = []
     indices = []
     d = dict()
-    p = pos[0]
+    p = pos[0] if pos is not None else None
     for idx, i in enumerate(syn):
         if wn.synsets(i, pos=p):
             s = wn.synsets(i, pos=p)[0]
