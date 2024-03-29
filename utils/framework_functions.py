@@ -33,7 +33,7 @@ def update_edges(edges, substitutions, lr, baseline_metric_value, current_metric
     return updated_edges
 
 
-def create_graph(data, pos, antonyms=False):
+def create_graph(data, pos, antonyms=False, starting_weights='equal'):
     """
     A function that takes as input a dataframe and a part-of-speech tag, and creates a bipartite graph
     with the possible substitution words and their candidates.
@@ -41,6 +41,7 @@ def create_graph(data, pos, antonyms=False):
     :param data: pd.DataFrame() containing one column with the textual data
     :param pos: string that specifies which part-of-speech shall be considered for substitution (noun, verb, adv)
     :param antonyms: boolean value specifying whether to use antonyms in the candidate substitutions
+    :param starting_weights: string value specifying how the initial edge weights shall be defined
     :returns: a dictionary containing the graph, along with other related features
     """
 
@@ -86,7 +87,21 @@ def create_graph(data, pos, antonyms=False):
     # synset as key, word as val
     combinations_nodes = all_combinations(names0, names1)  # all combinations of names
     combinations_synsets = all_combinations(all_syn0, all_syn1)  # all combinations of synsets
-    weights = [1] * len(combinations_nodes)
+
+    weights = []
+    if starting_weights == 'equal':
+        # start with all edge weights equal to 1
+        weights = [1] * len(combinations_nodes)
+
+    elif starting_weights == 'rand':
+        # start with initial normally distributed (random) edge weights
+        weights = np.random.default_rng().normal(size=len(combinations_nodes)).tolist()
+
+    elif starting_weights == 'wordsim':
+        # start with edge weights representing word similarity based on wordnet
+        for comb, syn in zip(combinations_nodes, combinations_synsets):  # find path similarities for all combinations
+            path_sim = wn_path_similarity(syn[0], syn[1])
+            weights.append(path_sim)  # with those pairwise similarities acting as weights
 
     print("Creating Bipartite Graph...")
     g, min_list_nodes = bipartite_graph(names0, names1, combinations_nodes, weights)  # create bipartite graph
