@@ -13,16 +13,13 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 class GraphEditor:
-    def __init__(self, data=None, pos=None, antonyms=None, eval_metric=None, baseline_metric=None, max_iter=None,
-                 thresh=None, debug=False):
+    def __init__(self, data=None, pos=None, antonyms=None, eval_metric=None, baseline_metric=None, maximize=None,
+                 max_iter=None, thresh=None, debug=False):
         if data is None:
             print("[ERROR]: No data provided to the editor!")
             exit(1)
         self.data = data
 
-        if pos is None:
-            print("[ERROR]: No POS tag provided to the editor!")
-            exit(1)
         self.pos = pos
 
         if eval_metric is None:
@@ -33,6 +30,8 @@ class GraphEditor:
         self.antonyms = antonyms if antonyms is not None else False
 
         self.baseline_metric = baseline_metric
+        self.maximize = maximize if maximize is not None else False
+
         self.max_iter = max_iter if max_iter is not None else 100
         self.thresh = thresh if thresh is not None else 0.005
 
@@ -65,8 +64,8 @@ class GraphEditor:
             print("[INFO]: Training graph...")
 
         self.graph_dict = train_graph(self.graph_dict, data=self.data, pos=self.pos, eval_metric=self.eval_metric,
-                                      baseline_metric=self.baseline_metric, max_iterations=self.max_iter,
-                                      th=self.thresh)
+                                      baseline_metric=self.baseline_metric, maximize=self.maximize,
+                                      max_iterations=self.max_iter, th=self.thresh)
 
         return self
 
