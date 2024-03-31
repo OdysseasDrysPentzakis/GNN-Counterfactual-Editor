@@ -188,7 +188,8 @@ def main(args):
 
     generator = GraphGenerator(src_file=args.src_file, col=args.col, dest_file=args.dest_file, pos=args.pos,
                                antonyms=args.antonyms, baseline=args.baseline, metric=args.metric,
-                               maximize=args.maximize, max_iter=args.max_iter, thresh=args.thresh)
+                               maximize=args.maximize, max_iter=args.max_iter, thresh=args.thresh,
+                               starting_weights=args.starting_weights)
 
     generator.pipeline()
 
