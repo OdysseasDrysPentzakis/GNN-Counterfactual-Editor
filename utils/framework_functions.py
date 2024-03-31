@@ -39,7 +39,7 @@ def create_graph(data, pos, antonyms=False, starting_weights='equal'):
     with the possible substitution words and their candidates.
 
     :param data: pd.DataFrame() containing one column with the textual data
-    :param pos: string that specifies which part-of-speech shall be considered for substitution (noun, verb, adv)
+    :param pos: string that specifies which part-of-speech shall be considered for substitution (noun, verb, adj)
     :param antonyms: boolean value specifying whether to use antonyms in the candidate substitutions
     :param starting_weights: string value specifying how the initial edge weights shall be defined
     :returns: a dictionary containing the graph, along with other related features
@@ -49,7 +49,7 @@ def create_graph(data, pos, antonyms=False, starting_weights='equal'):
 
     # use appropriate function based on pos to get the list of the specified pos words from the data
     if pos is not None:
-        if pos == 'adv':
+        if pos == 'adj':
             lst = create_attributes_list(sentences)
         elif pos == 'verb':
             lst = create_verb_list(sentences)
@@ -169,9 +169,9 @@ def generate_counterfactuals(graph_dict, data, pos):
 
     :param graph_dict: a dictionary containing a bipartite graph and other related features
     :param data: pd.DataFrame() containing one column with the textual data
-    :param pos: string that specifies which part-of-speech shall be considered for substitution (noun, verb, adv)
-    :returns: a dataframe with the generated counterfactual data, a list of selected edges from the graph and a
-    dictionary containing substitution occurrence
+    :param pos: string that specifies which part-of-speech shall be considered for substitution (noun, verb, adj)
+    :returns: a dataframe with the generated counterfactual data, a list of selected edges from the graph, a
+    dictionary containing substitution occurrence and a dictionary containing substitution synsets
     """
 
     w2n0 = graph_dict['word_to_node0']
@@ -202,7 +202,7 @@ def generate_counterfactuals(graph_dict, data, pos):
         w = g.get_edge_data(u, v, default=0)['weight']
         selected_edges.append((u, v, w))
 
-    return counter_data, selected_edges, subs_as_nodes
+    return counter_data, selected_edges, subs_as_nodes, substitution_synsets
 
 
 def train_graph(graph_dict, data, pos, eval_metric, maximize, preprocessor=None, model=None, learning_rate=0.1, th=0.005,
@@ -214,7 +214,7 @@ def train_graph(graph_dict, data, pos, eval_metric, maximize, preprocessor=None,
 
     :param graph_dict: a dictionary containing the bipartite graph along with other variables and characteristics
     :param data: a dataframe containing the textual examples we will use to train the graph
-    :param pos: a string specifing which part-of-speech shall be considered for substitutions (noun, verb, adv)
+    :param pos: a string specifing which part-of-speech shall be considered for substitutions (noun, verb, adj)
     :param eval_metric: a string that represents the metric which must be optimized during fine-tuning
     :param maximize: a boolean value definining whether to maximize or minimize the evaluation metric
     :param preprocessor: a custom class that implements the necessary preprocessing of the data
@@ -260,7 +260,7 @@ def train_graph(graph_dict, data, pos, eval_metric, maximize, preprocessor=None,
         # updated_edges = []
         baseline_metric = next_baseline_metric
 
-        counter_data, selected_edges, substitutions = generate_counterfactuals(graph_dict, data, pos)
+        counter_data, selected_edges, substitutions, _ = generate_counterfactuals(graph_dict, data, pos)
 
         print("Evaluating edits...")
 
