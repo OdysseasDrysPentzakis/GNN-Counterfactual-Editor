@@ -83,7 +83,7 @@ class GraphEditor:
 
         return counter_data
 
-    def pipeline(self, starting_weights=None):
+    def pipeline(self, starting_weights='equal'):
         """
         A method that runs the pipeline of the editor.
 
