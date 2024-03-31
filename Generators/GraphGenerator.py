@@ -46,7 +46,7 @@ Example:
         --col sentences
         --metric fluency_bertscore
         --dest-file ~/data/counterfactual_data.csv
-        --pos adv
+        --pos adj
         --antonyms
         --baseline 0.5
         --maximize
@@ -56,6 +56,7 @@ Example:
 """
 
 import os
+import json
 import argparse
 import pandas as pd
 from datetime import datetime
@@ -64,7 +65,7 @@ from Editors.GraphEditor import GraphEditor
 
 
 class GraphGenerator:
-    def __init__(self, src_file=None, col=None, dest_file=None, pos=None, antonyms=None, baseline=None, metric=None,
+    def __init__(self, src_file=None, col=None, dest_file=None, json_file=None, pos=None, antonyms=None, baseline=None, metric=None,
                  maximize=None, max_iter=None, thresh=None, starting_weights=None):
         """
         A class that generates counterfactuals using a bipartite graph.
@@ -109,7 +110,10 @@ class GraphGenerator:
         self.max_iter = 100 if max_iter is None else int(max_iter)
         self.thresh = 0.005 if thresh is None else float(thresh)
         self.dest_file = 'graph_edits.csv' if dest_file is None else dest_file
+        self.json_file = json_file
+
         self.edits = None
+        self.subs_dict = None
 
     def generate_counterfactuals(self):
         """
@@ -122,7 +126,7 @@ class GraphGenerator:
         editor = GraphEditor(data=self.sentences, pos=self.pos, antonyms=self.antonyms, eval_metric=self.metric,
                              baseline_metric=self.baseline, maximize=self.maximize, max_iter=self.max_iter,
                              thresh=self.thresh)
-        self.edits = editor.pipeline(starting_weights=self.starting_weights)
+        self.edits, self.subs_dict = editor.pipeline(starting_weights=self.starting_weights)
 
         return self
 
@@ -135,6 +139,11 @@ class GraphGenerator:
 
         print("[INFO]: Exporting generated counterfactuals to {}...".format(self.dest_file))
         self.edits.to_csv(self.dest_file, index=False)
+
+        if self.json_file is not None:
+            print("[INFO]: Exporting substitution dictionary to {}...".format(self.json_file))
+            with open(self.json_file, 'w') as f:
+                json.dump(self.subs_dict, f)
 
         return self
 
@@ -161,6 +170,8 @@ def parse_input(args=None):
                         help="The name of the column containing the original sentences")
     parser.add_argument("-d", "--dest-file", action='store', metavar="dest_file", required=False,
                         help="The csv filepath where the generated edits will be stored")
+    parser.add_argument("-j", "--json-file", action='store', metavar="json_file", required=False,
+                        help="The json filepath where the substitution dictionary will be stored")
     parser.add_argument("-p", "--pos", action='store', metavar="pos", required=False,
                         help="The part-of-speech tag of the words to be substituted")
     parser.add_argument("--antonyms", action='store_true', required=False,
@@ -186,8 +197,8 @@ def parse_input(args=None):
 def main(args):
     start_time = datetime.now()
 
-    generator = GraphGenerator(src_file=args.src_file, col=args.col, dest_file=args.dest_file, pos=args.pos,
-                               antonyms=args.antonyms, baseline=args.baseline, metric=args.metric,
+    generator = GraphGenerator(src_file=args.src_file, col=args.col, dest_file=args.dest_file, json_file=args.json_file,
+                               pos=args.pos, antonyms=args.antonyms, baseline=args.baseline, metric=args.metric,
                                maximize=args.maximize, max_iter=args.max_iter, thresh=args.thresh,
                                starting_weights=args.starting_weights)
 
