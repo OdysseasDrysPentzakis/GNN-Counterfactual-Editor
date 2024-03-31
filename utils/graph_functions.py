@@ -436,6 +436,17 @@ def external_swaps(sentences, pos, substitution_singular, d0_s, d1_s, thresh=100
             candidate_list = vbp + vbg + vb
         elif pos == 'noun':
             candidate_list, plural, new_c = check_if_noun(txt)
+        elif pos is None:
+            candidate_list = []
+            adj_candidate_list, new_s = check_if_attribute(s)
+            candidate_list.extend(adj_candidate_list)
+
+            vbp, vbg, vb, new_c = check_if_verb(txt)
+            verb_candidate_list = vbp + vbg + vb
+            candidate_list.extend(verb_candidate_list)
+
+            noun_candidate_list, plural, new_c = check_if_noun(txt)
+            candidate_list.extend(noun_candidate_list)
         else:
             raise AttributeError("pos '{}' is not supported!".format(pos))
 
