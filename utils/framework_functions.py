@@ -59,14 +59,14 @@ def create_graph(data, pos, antonyms=False, starting_weights='equal'):
             raise AttributeError("pos '{}' is not supported!".format(pos))
 
         syn0 = list(lst)
-        syn1 = get_antonym_list(lst)
+        syn1 = get_antonym_list(lst) if antonyms else syn0
 
     else:
-        adv_lst = create_attributes_list(sentences)
-        verb_lst = create_verb_list(sentences)
-        noun_lst = create_singular_list(sentences)
+        syn0 = []
+        syn0.extend(create_attributes_list(sentences))
+        syn0.extend(create_verb_list(sentences))
+        syn0.extend(create_singular_list(sentences))
 
-        syn0 = list(adv_lst.extend(verb_lst).extend(noun_lst))
         syn1 = get_antonym_list(syn0) if antonyms else syn0
 
     all_syn0, d0, ind0 = get_synsets(syn0, pos=pos, return_index=True)
@@ -95,7 +95,7 @@ def create_graph(data, pos, antonyms=False, starting_weights='equal'):
 
     elif starting_weights == 'rand':
         # start with initial normally distributed (random) edge weights
-        weights = np.random.default_rng().normal(size=len(combinations_nodes)).tolist()
+        weights = [np.random.uniform(0, 1) for _ in range(len(combinations_nodes))]
 
     elif starting_weights == 'wordsim':
         # start with edge weights representing word similarity based on wordnet
