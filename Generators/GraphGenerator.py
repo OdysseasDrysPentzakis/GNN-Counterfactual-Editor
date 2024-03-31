@@ -18,6 +18,7 @@ Usage:
         --col <name of column with the original sentences>
         --metric <metric to be used for evaluation (fluency, bertscore, closeness, fluency_bertscore)>
         [--dest-file <path_to_dest_file>]
+        [--json-file <path_to_json_file where accepted substitutions will be stored>]
         [--pos <part-of-speech tag of words to be substituted>]
         [--antonyms]
         [--baseline <baseline metric value (minimum/maximum value to achieve)>]
@@ -46,6 +47,7 @@ Example:
         --col sentences
         --metric fluency_bertscore
         --dest-file ~/data/counterfactual_data.csv
+        --json-file ~/data/substitutions.json
         --pos adj
         --antonyms
         --baseline 0.5
