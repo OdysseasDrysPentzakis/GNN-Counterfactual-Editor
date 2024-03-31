@@ -172,7 +172,7 @@ def get_baseline_metric(data, pos, eval_metric, model_required=False, preprocess
     where the edge weights represent the distance between words (nodes) as extracted from wordnet.
 
     :param data: pd.DataFrame() containing one column with the textual data
-    :param pos: string that specifies which part-of-speech shall be considered for substitution (noun, verb, adv)
+    :param pos: string that specifies which part-of-speech shall be considered for substitution (noun, verb, adj)
     :param eval_metric: a string that represents the metric which must be optimized during fine-tuning
     :param model_required: boolean value specifing whether a pretrained model is also required for the metric
     computation
