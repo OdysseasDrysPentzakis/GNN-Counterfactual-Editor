@@ -296,7 +296,7 @@ def create_attributes_list(sentences):
     return attributes
 
 
-def graph_adverb_substitutions(sentences, pos, baseline=True, antonyms=False):
+def graph_adjective_substitutions(sentences, pos, baseline=True, antonyms=False):
     """
     A function that takes as input a list od sentences, and generates substitutions.
 
@@ -429,7 +429,7 @@ def external_swaps(sentences, pos, substitution_singular, d0_s, d1_s, thresh=100
         opt_threshold = math.ceil(len(s.split()) * 0.2)  # 20% of the words in the sentence
         # according to the pos given, use the appropriate function to create the list with candidate words to be
         # substituted
-        if pos == 'adv':
+        if pos == 'adj':
             candidate_list, new_s = check_if_attribute(s)
         elif pos == 'verb':
             vbp, vbg, vb, new_c = check_if_verb(txt)
@@ -462,8 +462,8 @@ def external_swaps(sentences, pos, substitution_singular, d0_s, d1_s, thresh=100
 def get_edits(sentences, pos, thresh=100, baseline=True, antonyms=False):
 
     # use appropriate function based on pos to get feasible substitutions
-    if pos == 'adv':
-        substitution_singular, d0_s, d1_s, g = graph_adverb_substitutions(sentences, pos, baseline, antonyms)
+    if pos == 'adj':
+        substitution_singular, d0_s, d1_s, g = graph_adjective_substitutions(sentences, pos, baseline, antonyms)
     elif pos == 'verb':
         substitution_singular, d0_s, d1_s, g = graph_verb_substitutions(sentences, pos, baseline, antonyms)
     elif pos == 'noun':
