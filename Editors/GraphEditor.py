@@ -79,9 +79,9 @@ class GraphEditor:
         if self.debug:
             print("[INFO]: Generating counterfactuals...")
 
-        counter_data, selected_edges, subs = generate_counterfactuals(self.graph_dict, self.data, self.pos)
+        counter_data, selected_edges, subs, subs_dict = generate_counterfactuals(self.graph_dict, self.data, self.pos)
 
-        return counter_data
+        return counter_data, subs_dict
 
     def pipeline(self, starting_weights='equal'):
         """
@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     # parameters initialization
     sents = pd.read_csv("../Data/NEWSGROUPS/test/newsgroups_test.csv")[["text"]].head(10)
-    POS = 'adv'
+    POS = 'adj'
     ANTONYMS = True
     baseline = 0.478
 
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     editor = GraphEditor(data=sents, pos=POS, antonyms=ANTONYMS, eval_metric='fluency',
                          baseline_metric=baseline, debug=True)
 
-    generated_edits = editor.pipeline()
+    generated_edits, substitutions_dictionary = editor.pipeline()
 
     model, tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
     print("Fluency: {}\n".format(get_fluency(sents, generated_edits, model, tokenizer)))
