@@ -21,7 +21,6 @@ def update_edges(edges, substitutions, lr, baseline_metric_value, current_metric
         try:
             # get substitution occurences for each edge
             edge_subs = substitutions[(u, v)]
-            # updating formula: Use - for minimizing, + for maximizing
             delta = lr * (baseline_metric_value - current_metric_value) / edge_subs
             new_w = (w + delta) if maximize else (w - delta)
 
