@@ -19,44 +19,51 @@ def beam_search(text, substitutions, original_pred, original_fluency, model, bea
     """
 
     # initialize model and tokenizer used for evaluating fluency
-    fluency_model, fluency_tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
+    fluency_model, fluency_tokenizer = model_init('gpt2', cuda=not torch.cuda.is_available())
 
-    sent = text.tolower().split()
+    sent = text.lower()
     cand_set = {(sent, 0)}
     counter = 0
+    new_candidates = []
 
     while counter < max_subs and cand_set:
-        new_candidates = list()
-        for elem in cand_set:
-            cand_set.remove(elem)
-            candidate, prev_sub_idx = elem
 
-            for idx, word in enumerate(candidate[prev_sub_idx:]):
-                new_cand = candidate
-                new_cand[prev_sub_idx+idx] = substitutions.get(word, word)
+        elem = cand_set.pop()
+        candidate, prev_sub_idx = elem
+        candidate = candidate.split()
 
-                # check if the new candidate is different from the original sentence
-                if new_cand != candidate:
-                    # get the prediction of the new candidate
+        for idx, word in enumerate(candidate[prev_sub_idx:]):
+            new_cand = candidate.copy()
+            new_cand[prev_sub_idx+idx] = substitutions.get(word, word)
+
+            # check if the new candidate is different from the original sentence
+            if " ".join(new_cand) != " ".join(candidate):
+                # get the prediction of the new candidate if a model is provided
+                if model is not None:
                     new_pred = model(new_cand)
                     # if prediction is flipped, return the new candidate
                     if new_pred != original_pred:
-                        return new_cand
-                    # else, add it to the candidate list
-                    new_candidates.append((new_cand, prev_sub_idx+idx))
+                        return " ".join(new_cand)
+
+                # else, add it to the candidate list
+                new_candidates.append((" ".join(new_cand), prev_sub_idx+idx))
 
         # sort the new candidates based on fluency and add the top b to the next round
-        new_candidates = sorted(
-            new_candidates, key=lambda x: abs(original_fluency - sent_scoring(fluency_model, fluency_tokenizer, x[0])),
-            reverse=True
-        )
-        cand_set = cand_set.union(new_candidates[:beam_size])
+        if new_candidates:
+            new_candidates = sorted(
+                new_candidates, key=lambda x: abs(original_fluency - sent_scoring(fluency_model, fluency_tokenizer, x[0])[0]),
+                reverse=True
+            )
+            cand_set = cand_set.union(new_candidates[:min(beam_size, len(new_candidates))])
+        else:
+            break
 
         counter += 1  # update counter value
+        new_candidates = []  # reset the new candidates list
 
     # if no adversarial is found, return the best candidate based on fluency
     best_candidate = max(cand_set,
-                         key=lambda x: abs(original_fluency - sent_scoring(fluency_model, fluency_tokenizer, x[0]))
+                         key=lambda x: abs(original_fluency - sent_scoring(fluency_model, fluency_tokenizer, x[0])[0])
                          )[0]
 
     return best_candidate
