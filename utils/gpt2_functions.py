@@ -38,12 +38,12 @@ def model_init(model_string='gpt2', cuda=False):
 
 def sent_scoring(model, tokenizer, text, cuda=False):
     """
-    A function that uses the given LM and Tokenizer to compute the probability of a given sentence.
+    A function that uses the given LLM and Tokenizer to compute the probability of a given sentence.
 
     :param model: a pretrained transformer model
     :param tokenizer: a pretrained tokenizer
     :param text: a string representing the sentence whose probability will be computed
-    :param cuda: boolean value, determining whether or not to use gpu for model inference
+    :param cuda: boolean value, determining whether to use gpu for model inference
     :return: the computed loss of the sentence and log_probability of the last token
     """
 
