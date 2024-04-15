@@ -12,7 +12,7 @@ def get_prediction(model, tokenizer, text):
     :return: the prediction of the model
     """
     # get encoded input tokens from text
-    encoded_text = tokenizer(text, return_tensors='pt')
+    encoded_text = tokenizer(text, padding=True, truncation=True, return_tensors='pt')
     with torch.no_grad():
         output = model(**encoded_text)
 
