@@ -23,7 +23,7 @@ def beam_search(text, substitutions, original_pred, original_fluency, model=None
                 beam_size=3, max_subs=10):
     """
     A function that uses beam search to create appropriate adversarials based on a given text.
-    At each step, we take the top b candidates based on fluency and we continue until the original
+    At each step, we take the top b candidates based on fluency, and we continue until the original
     prediction is changed.
 
     :param text: string representing the original sentence
