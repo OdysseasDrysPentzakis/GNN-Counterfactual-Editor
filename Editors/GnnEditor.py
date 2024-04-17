@@ -4,7 +4,7 @@ Created 17 April 2024
 Description: A script containing a counterfactual editor class that uses a bipartite graph and a pretrained GNN to
 create edits
 """
-
+import pandas as pd
 from torch_geometric.data import Data, Dataset, DataLoader
 from utils.glan_functions import *
 from utils.graph_functions import *
@@ -231,7 +231,11 @@ class GnnEditor:
                              model=self.predictor, tokenizer=self.tokenizer)
             counter_sents.append(cs)
 
-        return counter_sents
+        counter_data = pd.DataFrame({
+            'counter_sents': counter_sents
+        })
+
+        return counter_data, self.substitutions
 
     def pipeline(self):
         return self.create_distance_matrix().find_substitutions().create_counterfactuals()
