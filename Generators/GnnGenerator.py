@@ -1,3 +1,52 @@
+"""
+Created 17 April 2024
+@author: Dimitris Lymperopoulos
+Description: A script containing a counterfactual generator class that uses a bipartite graph, a pretrained gnn model
+and beam search to generate fluent edits with high flip-rate.
+
+Usage:
+1) Generate counterfactuals and store them to the default location, which is './gnn_edits.csv'.The default value for
+antonyms is False:
+    python3 GnnGenerator.py
+        --src-file <path_to_src_file>
+        --col <name of column with the original sentences>
+        --gnn-model-file <filepath to pretrained gnn model>
+        --predictor-path <directory path to the pretrained classifier>
+
+2)  Generate counterfactuals by selecting the words that satisfy a given pos tag, and substituting them with either
+    their synonyms or antonyms:
+    python3 GraphGenerator.py
+        --src-file <path_to_src_file>
+        --col <name of column with the original sentences>
+        --gnn-model-file <filepath to pretrained gnn model>
+        --predictor-path <directory path to the pretrained classifier>
+        [--dest-file <path_to_dest_file>]
+        [--json-file <path_to_json_file where accepted substitutions will be stored>]
+        [--pos <part-of-speech tag of words to be substituted>]
+        [--antonyms]
+
+
+Example:
+1) Generate the most generic counterfactuals by giving only the required parameters and leaving the rest to default:
+    python3 GnnGenerator.py
+        --src-file ~/data/original_data.csv
+        --col sentences
+        --gnn-model-file ~/my_gnn_model.pth
+        --predictor-path ~/my_predictor
+
+2)  Specify every parameter to generate as specific counterfactuals as possible:
+    python3 GraphGenerator.py
+        --src-file ~/data/original_data.csv
+        --col sentences
+        --gnn-model-file ~/my_gnn_model.pth
+        --predictor-path ~/my_predictor
+        --dest-file ~/data/counterfactual_data.csv
+        --json-file ~/data/substitutions.json
+        --pos adj
+        --antonyms
+
+"""
+
 import os
 import json
 import argparse
@@ -122,9 +171,9 @@ def parse_input(args=None):
     parser.add_argument("--antonyms", action='store_true', required=False,
                         help="Whether to use antonyms as substitutes")
     parser.add_argument("-g", "--gnn-model-file", action='store', metavar="gnn_model_file", required=True,
-                        help="The path to the pretrained GNN model")
+                        help="The filepath to the pretrained GNN model")
     parser.add_argument("--predictor-path", action='store', metavar="predictor_path", required=True,
-                        help="The path to the pretrained classifier")
+                        help="The directory path to the pretrained classifier")
 
     return parser.parse_args(args)
 
