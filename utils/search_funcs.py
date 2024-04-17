@@ -86,8 +86,12 @@ def beam_search(text, substitutions, original_pred, original_fluency, model=None
         new_candidates = []  # reset the new candidates list
 
     # if no adversarial is found, return the best candidate based on fluency
-    best_candidate = max(cand_set,
-                         key=lambda x: abs(original_fluency - sent_scoring(fluency_model, fluency_tokenizer, x[0])[0])
-                         )[0]
+    try:
+        best_candidate = max(cand_set,
+                             key=lambda x: abs(original_fluency - sent_scoring(fluency_model, fluency_tokenizer,
+                                                                               x[0])[0])
+                             )[0]
+    except ValueError:
+        best_candidate = sent
 
     return best_candidate
