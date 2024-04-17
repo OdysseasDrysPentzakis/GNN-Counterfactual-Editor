@@ -1,3 +1,10 @@
+"""
+Created 17 April 2024
+@author: Dimitris Lymperopoulos
+Description: A script containing a counterfactual editor class that uses a bipartite graph and a pretrained GNN to
+create edits
+"""
+
 from torch_geometric.data import Data, Dataset, DataLoader
 from utils.glan_functions import *
 from utils.graph_functions import *
