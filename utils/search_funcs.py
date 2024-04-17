@@ -20,7 +20,7 @@ def get_prediction(model, tokenizer, text):
 
 
 def beam_search(text, substitutions, original_pred, original_fluency, model=None, tokenizer=None,
-                beam_size=3, max_subs=10):
+                fluency_model=None, fluency_tokenizer=None, beam_size=3, max_subs=10):
     """
     A function that uses beam search to create appropriate adversarials based on a given text.
     At each step, we take the top b candidates based on fluency, and we continue until the original
@@ -32,14 +32,17 @@ def beam_search(text, substitutions, original_pred, original_fluency, model=None
     :param original_fluency: the fluency of the original sentence
     :param model: the model used for prediction
     :param tokenizer: the tokenizer used for prediction
+    :param fluency_model: the model used for fluency scoring
+    :param fluency_tokenizer: the tokenizer used for fluency scoring
     :param beam_size: the size of the beam
     :param max_subs: the maximum number of substitutions allowed
     
     :return: string representing the adversarial sentence
     """
 
-    # initialize model and tokenizer used for evaluating fluency
-    fluency_model, fluency_tokenizer = model_init('gpt2', cuda=not torch.cuda.is_available())
+    # initialize model and tokenizer used for evaluating fluency if not provided
+    if fluency_model is None or fluency_tokenizer is None:
+        fluency_model, fluency_tokenizer = model_init('gpt2', cuda=not torch.cuda.is_available())
 
     sent = text.lower()
     cand_set = {(sent, 0)}
