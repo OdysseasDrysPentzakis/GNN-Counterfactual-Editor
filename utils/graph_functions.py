@@ -221,6 +221,15 @@ def wn_path_similarity(synset0, synset1):    # find wordnet path similarity scor
     return sim
 
 
+def get_distance(synset0, synset1):
+    if synset0.pos() == synset1.pos():
+        sim = synset0.path_similarity(synset1)
+    else:
+        sim = 10
+
+    return sim
+
+
 def wn_hierarchy(s0, s1, pos, baseline=True):
     weights = []
     syn0 = list(s0)
