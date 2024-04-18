@@ -55,6 +55,8 @@ from GLAN_Model.GNBlock import Model
 from Editors.GnnEditor import *
 from transformers import DistilBertForSequenceClassification, DistilBertTokenizerFast
 
+torch.set_grad_enabled(False)
+
 
 class GnnGenerator:
     def __init__(self, src_file=None, col=None, dest_file=None, json_file=None, pos=None, antonyms=None,
