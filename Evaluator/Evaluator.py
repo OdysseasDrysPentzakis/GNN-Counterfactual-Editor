@@ -132,6 +132,8 @@ def parse_input(args=None):
                         help="The name of the column containing the counterfactual sentences")
     parser.add_argument("-m", "--metric", choices=['fluency', 'bertscore', 'closeness', 'flip-rate'], action='store',
                         metavar="metric", required=False, default='all', help="The metric to be used for evaluation")
+    parser.add_argument("-p", "--predictor", action='store', metavar="predictor", required=False,
+                        help="The path to the pretrained predictor model")
 
     return parser.parse_args(args)
 
@@ -140,7 +142,8 @@ def main(args):
     start_time = datetime.now()
 
     evaluator = Evaluator(original_csv=args.original_csv, original_col=args.original_col,
-                          counter_csv=args.counter_csv, counter_col=args.counter_col, metric=args.metric)
+                          counter_csv=args.counter_csv, counter_col=args.counter_col, metric=args.metric,
+                          predictor=args.predictor)
 
     evaluator.evaluate()
 
