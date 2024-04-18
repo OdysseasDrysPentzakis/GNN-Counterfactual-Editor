@@ -14,6 +14,7 @@ from pylev import levenshtein as lev_dist
 
 from utils.gpt2_functions import *
 from utils.graph_functions import *
+from utils.search_funcs import get_prediction
 
 
 def adversarial_success(original_output, counterfactual_output):
@@ -61,22 +62,6 @@ def get_fluency(data, counter_data, model, tokenizer):
                 counter += 1
             except RuntimeError:
                 continue
-
-    # avg_fluency = sum(
-    #     Parallel(n_jobs=-3)(
-    #         delayed(
-    #             lambda x: abs(sent_scoring(gpt_model, gpt_tokenizer, x[0], cuda=cuda)[0] -
-    #             sent_scoring(gpt_model, gpt_tokenizer, x[1], cuda=cuda)[0]))(x) for x in sent_pairs
-    #     if len(x[0]) <= 1024 and len(x[1]) <= 1024
-    #     )
-    # )
-
-    # counter = sum(
-    #     Parallel(n_jobs=-3)(
-    #         delayed(
-    #             lambda x: (len(x[0]) <= 1024 and len(x[1]) <= 1024))(x) for x in sent_pairs
-    #     )
-    # )
 
     return avg_fluency / counter
 
@@ -144,26 +129,38 @@ def get_bertscore(data, counter_data, bertscore):
     return avg_bertscore
 
 
-def get_flip_rate(original_p, counter_p, n_jobs=1):
+def get_flip_rate(data, counter_data, model, tokenizer):
     """
-    A function that takes as input the original predictions and the new ones, and returns the
+    A function that takes as input the original sentences and the counter sentences, and returns the
     flip-rate as a percentage.
 
-    :param original_p: list containing the predictions for the original data
-    :param counter_p: dataframe containing the predictions for the counter data
-    :param n_jobs: an integer value specifying the number of parallel jobs to be used
-    :returns: dictionary containing model-related metrics
+    :param data: dataframe containing one column with the original data
+    :param counter_data: dataframe containing one column with the counter data
+    :param model: a pretrained model on the dataset
+    :param tokenizer: a pretrained tokenizer for the model
+
+    :returns: float value representing the flip-rate metric
     """
 
-    # check that predictions and counter_predictions are of the same length
-    assert len(original_p) == len(counter_p)
+    # extract sentences and counter-sentences from the data and check that they are of the same length
+    dirty_sentences = [elem[0] for elem in data.values.tolist()]
+    dirty_counter_sentences = [elem[0] for elem in counter_data.values.tolist()]
 
-    # compute flip_rate
-    flip_rate_percent = sum(
-        Parallel(n_jobs=n_jobs)(delayed(lambda x: x[0] != x[1])(x) for x in zip(original_p, counter_p))) / len(
-        original_p)
+    # filter out sentences where the counter sentence is NaN
+    sentences, counter_sentences = [], []
+    for idx in range(len(dirty_sentences)):
+        if type(dirty_counter_sentences[idx]) != float:
+            sentences.append(dirty_sentences[idx])
+            counter_sentences.append(dirty_counter_sentences[idx])
 
-    return flip_rate_percent
+    assert len(sentences) == len(counter_sentences)
+
+    flip_rate = 0
+    for idx in range(len(sentences)):
+        if get_prediction(model, tokenizer, sentences[idx]) != get_prediction(model, tokenizer, counter_sentences[idx]):
+            flip_rate += 1
+
+    return flip_rate / len(sentences)
 
 
 def get_baseline_metric(data, pos, eval_metric, model_required=False, preprocessor=None, model=None, antonyms=False):
