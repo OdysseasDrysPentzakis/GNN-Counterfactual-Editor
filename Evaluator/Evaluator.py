@@ -10,7 +10,7 @@ Usage:
         --original-col <name of column with the original sentences>
         --counter-csv <path_to_counter_csv>
         --counter-col <name of column with the counter sentences>
-        [--metric <metric_to_be_used (fluency, bertscore, closeness)>]
+        [--metric <metric_to_be_used (fluency, bertscore, closeness, flip-rate)>]
 
 Example:
 1)
@@ -27,16 +27,18 @@ import os
 import argparse
 import torch.cuda
 import warnings
-from evaluate import load
 from datetime import datetime
+from transformers import DistilBertForSequenceClassification, DistilBertTokenizerFast
 
 from utils.evaluation_metrics import *
 
 warnings.filterwarnings("ignore", category=FutureWarning)
+torch.set_grad_enabled(False)
 
 
 class Evaluator:
-    def __init__(self, original_csv=None, original_col=None, counter_csv=None, counter_col=None, metric=None):
+    def __init__(self, original_csv=None, original_col=None, counter_csv=None, counter_col=None, metric=None,
+                 predictor=None):
         if original_csv is None:
             print("[ERROR]: original_csv must be specified")
             exit(1)
@@ -60,6 +62,18 @@ class Evaluator:
         self.sents = pd.read_csv(original_csv)[[original_col]]
         self.counter_sents = pd.read_csv(counter_csv)[[counter_col]]
         self.metric = metric if metric is not None else 'all'
+        self.predictor = None
+        self.tokenizer = None
+
+        if self.metric == 'flip-rate' or self.metric == 'all':
+            if predictor is None:
+                print("[ERROR]: predictor must be specified for flip-rate metric")
+                exit(1)
+            if not os.path.exists(predictor):
+                print("[ERROR]: file {} does not exist".format(predictor))
+                exit(1)
+            self.predictor = DistilBertForSequenceClassification.from_pretrained(predictor)
+            self.tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
 
     def evaluate(self):
         print("[INFO]: Evaluating counterfactuals...")
@@ -78,6 +92,10 @@ class Evaluator:
             closeness = get_closeness(self.sents, self.counter_sents)
             print("\nCloseness: {}".format(closeness))
 
+        elif self.metric == 'flip-rate':
+            flip_rate = get_flip_rate(self.sents, self.counter_sents, self.predictor, self.tokenizer)
+            print("\nFlip Rate: {}".format(flip_rate))
+
         elif self.metric == 'all':
             model, tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
             fluency = get_fluency(self.sents, self.counter_sents, model, tokenizer)
@@ -89,9 +107,12 @@ class Evaluator:
 
             closeness = get_closeness(self.sents, self.counter_sents)
 
+            flip_rate = get_flip_rate(self.sents, self.counter_sents, self.predictor, self.tokenizer)
+
             print("\nFluency: {}".format(fluency))
             print("BERTScore: {}".format(score))
             print("Closeness: {}".format(closeness))
+            print("Flip Rate: {}".format(flip_rate))
 
 
 def parse_input(args=None):
@@ -109,7 +130,7 @@ def parse_input(args=None):
                         help="The path to the csv file containing the counterfactual sentences")
     parser.add_argument("-cc", "--counter-col", action='store', metavar="counter_col", required=True,
                         help="The name of the column containing the counterfactual sentences")
-    parser.add_argument("-m", "--metric", choices=['fluency', 'bertscore', 'closeness'], action='store',
+    parser.add_argument("-m", "--metric", choices=['fluency', 'bertscore', 'closeness', 'flip-rate'], action='store',
                         metavar="metric", required=False, default='all', help="The metric to be used for evaluation")
 
     return parser.parse_args(args)
