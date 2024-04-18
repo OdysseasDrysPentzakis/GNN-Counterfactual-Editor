@@ -96,14 +96,10 @@ class GnnEditor:
         self.fluency_model, self.fluency_tokenizer = model_init('gpt2', cuda=not torch.cuda.is_available())
 
         self.distance_matrix = None
-        # self.combinations_nodes = None
-        # self.combinations_synsets = None
-        # self.d0 = None
-        # self.d1 = None
+        self.d0 = None
+        self.d1 = None
         self.all_syn0 = None
         self.all_syn1 = None
-        # self.word_to_node0 = dict()
-        # self.word_to_node1 = dict()
 
         self.substitutions = dict()
 
@@ -137,22 +133,8 @@ class GnnEditor:
 
             syn1 = get_antonym_list(syn0) if self.antonyms else syn0
 
-        self.all_syn0, d0, ind0 = get_synsets(syn0, pos=self.pos, return_index=True)
-        self.all_syn1, d1, ind1 = get_synsets(syn1, pos=self.pos, return_index=True)
-
-        print("Creating Node Names...")
-        # give unique names for each synset of the two sets
-        # names0 = ['G0_' + str(i) for i in range(len(self.all_syn0))]
-        # names1 = ['G1_' + str(i) for i in range(len(self.all_syn1))]
-
-        # for t in zip(names0, ind0):
-        #     self.word_to_node0[syn0[t[1]]] = t[0]
-        #
-        # for t in zip(names1, ind1):
-        #     self.word_to_node1[syn1[t[1]]] = t[0]
-        #
-        # self.combinations_nodes = all_combinations(names0, names1)  # all combinations of names
-        # self.combinations_synsets = all_combinations(self.all_syn0, self.all_syn1)  # all combinations of synsets
+        self.all_syn0, self.d0, ind0 = get_synsets(syn0, pos=self.pos, return_index=True)
+        self.all_syn1, self.d1, ind1 = get_synsets(syn1, pos=self.pos, return_index=True)
 
         # TODO: maybe use the min list as rows and the max as columns instead
         row_length = len(self.all_syn0)
@@ -206,7 +188,7 @@ class GnnEditor:
             for j in range(pred_matrix.shape[1]):
                 if pred_matrix[i][j] == 1:
 
-                    self.substitutions[self.all_syn0[i].lemmas()[0].name()] = self.all_syn1[j].lemmas()[0].name()
+                    self.substitutions[self.d0[self.all_syn0[i]]] = self.d1[self.all_syn1[j]]
 
         return self
 
