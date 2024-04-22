@@ -86,7 +86,7 @@ class GnnGenerator:
         if col is None:
             print("[ERROR]: col must be specified")
             exit(1)
-        self.sentences = pd.read_csv(src_file)[[col]].head(100)
+        self.sentences = pd.read_csv(src_file)[[col]]
 
         if gnn_model_file is None:
             print("[ERROR]: gnn_model_file must be specified")
