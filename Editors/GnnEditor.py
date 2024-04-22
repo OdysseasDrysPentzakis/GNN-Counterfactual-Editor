@@ -103,7 +103,7 @@ class GnnEditor:
 
         self.substitutions = dict()
 
-    def create_distance_matrix(self):
+    def create_distance_matrix(self, edge_filter=False):
         """
         Create a graph from the given data.
 
@@ -146,7 +146,8 @@ class GnnEditor:
         for i in range(row_length):
             for j in range(col_length):
                 # rows will be syn0 and columns will be syn1
-                self.distance_matrix[i, j] = get_distance(self.all_syn0[i], self.all_syn1[j])
+                self.distance_matrix[i, j] = wn_path_similarity(self.all_syn0[i], self.all_syn1[j]) if edge_filter \
+                    else get_distance(self.all_syn0[i], self.all_syn1[j])
 
         return self
 
@@ -192,7 +193,7 @@ class GnnEditor:
 
         return self
 
-    def create_counterfactuals(self):
+    def create_counterfactuals(self, opt_th=False):
         """
         Create counterfactuals for the given data using the substitutions found.
 
@@ -209,8 +210,9 @@ class GnnEditor:
             # get original fluency
             fluency = sent_scoring(self.fluency_model, self.fluency_tokenizer, s)[0]
             # get the best counterfactual using beam search
+            max_subs = math.ceil(len(s.split()) / 5) if opt_th else 10
             cs = beam_search(text=s, substitutions=self.substitutions, original_pred=pred, original_fluency=fluency,
-                             model=self.predictor, tokenizer=self.tokenizer)
+                             model=self.predictor, tokenizer=self.tokenizer, max_subs=max_subs)
             counter_sents.append(cs)
 
         counter_data = pd.DataFrame({
@@ -219,5 +221,6 @@ class GnnEditor:
 
         return counter_data, self.substitutions
 
-    def pipeline(self):
-        return self.create_distance_matrix().find_substitutions().create_counterfactuals()
+    def pipeline(self, edge_filter=False, opt_th=False):
+        return self.create_distance_matrix(edge_filter=edge_filter).find_substitutions().create_counterfactuals(
+            opt_th=opt_th)
