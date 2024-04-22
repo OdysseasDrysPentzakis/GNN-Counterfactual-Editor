@@ -24,7 +24,8 @@ antonyms is False:
         [--json-file <path_to_json_file where accepted substitutions will be stored>]
         [--pos <part-of-speech tag of words to be substituted>]
         [--antonyms]
-
+        [--edge-filter]
+        [--optimal-threshold]
 
 Example:
 1) Generate the most generic counterfactuals by giving only the required parameters and leaving the rest to default:
@@ -44,6 +45,8 @@ Example:
         --json-file ~/data/substitutions.json
         --pos adj
         --antonyms
+        --edge-filter
+        --optimal-threshold
 
 """
 
@@ -60,7 +63,7 @@ torch.set_grad_enabled(False)
 
 class GnnGenerator:
     def __init__(self, src_file=None, col=None, dest_file=None, json_file=None, pos=None, antonyms=None,
-                 gnn_model_file=None, predictor_path=None):
+                 gnn_model_file=None, predictor_path=None, edge_filter=None, optimal_threshold=None):
         """
         A class that generates edits using a pretrained GNN model to solve RLAP.
 
@@ -83,7 +86,7 @@ class GnnGenerator:
         if col is None:
             print("[ERROR]: col must be specified")
             exit(1)
-        self.sentences = pd.read_csv(src_file)[[col]]
+        self.sentences = pd.read_csv(src_file)[[col]].head(100)
 
         if gnn_model_file is None:
             print("[ERROR]: gnn_model_file must be specified")
@@ -109,6 +112,8 @@ class GnnGenerator:
         self.json_file = json_file
         self.pos = pos
         self.antonyms = antonyms
+        self.edge_filter = edge_filter if edge_filter is not None else False
+        self.opt_th = optimal_threshold if optimal_threshold is not None else False
 
         self.edits = None
         self.subs_dict = None
@@ -123,7 +128,7 @@ class GnnGenerator:
 
         gnn_editor = GnnEditor(data=self.sentences, gnn_model=self.gnn_model, predictor=self.predictor,
                                tokenizer=self.tokenizer, pos=self.pos, antonyms=self.antonyms)
-        self.edits, self.subs_dict = gnn_editor.pipeline()
+        self.edits, self.subs_dict = gnn_editor.pipeline(edge_filter=self.edge_filter, opt_th=self.opt_th)
 
         return self
 
@@ -178,6 +183,10 @@ def parse_input(args=None):
                         help="The filepath to the pretrained GNN model")
     parser.add_argument("--predictor-path", action='store', metavar="predictor_path", required=True,
                         help="The directory path to the pretrained classifier")
+    parser.add_argument("-e", "--edge-filter", action='store_true', required=False,
+                        help="Whether to use pos-based edge filtering in the graph creation process")
+    parser.add_argument("-o", "--optimal-threshold", action='store_true', required=False,
+                        help="Whether to use optimal threshold for upper limit of substitutions")
 
     return parser.parse_args(args)
 
@@ -187,7 +196,8 @@ def main(args):
 
     generator = GnnGenerator(src_file=args.src_file, col=args.col, dest_file=args.dest_file, json_file=args.json_file,
                              pos=args.pos, antonyms=args.antonyms, gnn_model_file=args.gnn_model_file,
-                             predictor_path=args.predictor_path)
+                             predictor_path=args.predictor_path, edge_filter=args.edge_filter,
+                             optimal_threshold=args.optimal_threshold)
 
     generator.pipeline()
 
