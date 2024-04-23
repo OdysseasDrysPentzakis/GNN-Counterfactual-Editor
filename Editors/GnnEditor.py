@@ -212,7 +212,8 @@ class GnnEditor:
             # get the best counterfactual using beam search
             max_subs = math.ceil(len(s.split()) / 5) if opt_th else 10
             cs = beam_search(text=s, substitutions=self.substitutions, original_pred=pred, original_fluency=fluency,
-                             model=self.predictor, tokenizer=self.tokenizer, max_subs=max_subs)
+                             model=self.predictor, tokenizer=self.tokenizer, fluency_model=self.fluency_model,
+                             fluency_tokenizer=self.fluency_tokenizer, max_subs=max_subs)
             counter_sents.append(cs)
 
         counter_data = pd.DataFrame({
