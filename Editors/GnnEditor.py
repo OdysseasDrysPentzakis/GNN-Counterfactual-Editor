@@ -146,8 +146,8 @@ class GnnEditor:
         for i in range(row_length):
             for j in range(col_length):
                 # rows will be syn0 and columns will be syn1
-                self.distance_matrix[i, j] = wn_path_similarity(self.all_syn0[i], self.all_syn1[j]) if edge_filter \
-                    else get_distance(self.all_syn0[i], self.all_syn1[j])
+                self.distance_matrix[i, j] = get_distance(self.all_syn0[i], self.all_syn1[j]) if edge_filter \
+                    else wn_path_similarity(self.all_syn0[i], self.all_syn1[j])
 
         return self
 
