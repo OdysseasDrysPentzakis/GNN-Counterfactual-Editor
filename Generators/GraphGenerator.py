@@ -27,13 +27,6 @@ Usage:
         [--thresh <threshold for convergence of the graph training process>]
         [--starting-weights <initial edge weights of biparite graph (equal, rand, wordsim) - default is equal>]
 
-2) Generate counterfactuals and store them to the default location, which is ./graph_edits.csv, while also using
-    default values for max_iterations (100) and threshold (0.005). The default value for antonyms is False:
-    python3 GraphGenerator.py
-        --src-file <path_to_src_file>
-        --col <name of column with the original sentences>
-        --metric <metric to be used for evaluation (fluency, bertscore, closeness, fluency_bertscore)>
-
 Example:
 1) Generate the most generic counterfactuals by giving only the required parameters and leaving the rest to default:
     python3 GraphGenerator.py
