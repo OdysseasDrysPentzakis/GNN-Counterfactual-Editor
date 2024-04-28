@@ -12,10 +12,10 @@ def model_init(model_string='gpt2', cuda=False):
     :return: the pretrained model and tokenizer
     """
 
-    if model_string.startswith("gpt2"):
+    if "gpt2" in model_string:
         tokenizer = GPT2Tokenizer.from_pretrained(model_string)
         model = GPT2LMHeadModel.from_pretrained(model_string)
-    elif model_string.startswith("t5-base"):
+    elif "t5-base" in model_string:
         tokenizer = T5Tokenizer.from_pretrained(model_string)
         model = T5ForConditionalGeneration.from_pretrained(model_string)
     else:
