@@ -9,7 +9,6 @@ import pandas as pd
 
 # Metric-related imports
 from evaluate import load
-from joblib import Parallel, delayed
 from pylev import levenshtein as lev_dist
 
 from utils.gpt2_functions import *
@@ -66,14 +65,13 @@ def get_fluency(data, counter_data, model, tokenizer):
     return avg_fluency / counter
 
 
-def get_closeness(data, counter_data, n_jobs=1):
+def get_closeness(data, counter_data):
     """
     A function that takes as input the original and the counter data and returns the average levenshtein
     distance as a measure of closeness between the sentence pairs
 
     :param data: dataframe containing one column with the original data
     :param counter_data: dataframe containing one column with the counter data
-    :param n_jobs: an integer value specifying the number of parallel jobs to be used
     :returns: float value representing the average levenshtein distance
     """
 
@@ -91,8 +89,8 @@ def get_closeness(data, counter_data, n_jobs=1):
     assert len(sentences) == len(counter_sentences)
 
     # compute average levenshtein distance as a measurement of closeness
-    avg_lev = sum(Parallel(n_jobs=n_jobs)(delayed(lev_dist)(x[0], x[1]) / len(x[0].split()) for x in
-                                          zip(sentences, counter_sentences) if type(x[1]) != float)) / len(sentences)
+    avg_lev = sum(lev_dist(x[0], x[1]) / len(x[0].split()) for x in zip(sentences, counter_sentences) if
+                  type(x[1]) != float) / len(sentences)
 
     return avg_lev
 
