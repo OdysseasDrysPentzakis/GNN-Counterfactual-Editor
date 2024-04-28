@@ -85,14 +85,14 @@ def get_closeness(data, counter_data, n_jobs=1):
     sentences, counter_sentences = [], []
     for idx in range(len(dirty_sentences)):
         if type(dirty_counter_sentences[idx]) != float:
-            sentences.append(dirty_sentences[idx])
+            sentences.append(dirty_sentences[idx].lower())
             counter_sentences.append(dirty_counter_sentences[idx])
 
     assert len(sentences) == len(counter_sentences)
 
     # compute average levenshtein distance as a measurement of closeness
-    avg_lev = sum(Parallel(n_jobs=n_jobs)(delayed(lev_dist)(x[0], x[1]) for x in zip(sentences, counter_sentences) if
-                  type(x[1]) != float)) / len(sentences)
+    avg_lev = sum(Parallel(n_jobs=n_jobs)(delayed(lev_dist)(x[0], x[1]) / len(x[0].split()) for x in
+                                          zip(sentences, counter_sentences) if type(x[1]) != float)) / len(sentences)
 
     return avg_lev
 
