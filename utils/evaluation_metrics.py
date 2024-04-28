@@ -56,8 +56,8 @@ def get_fluency(data, counter_data, model, tokenizer):
     for x in tqdm(sent_pairs):
         if type(x[1]) != float and len(x[0]) <= 1024 and len(x[1]) <= 1024:
             try:
-                pair_fluency = abs(sent_scoring(model, tokenizer, x[0], cuda=cuda)[0] -
-                                   sent_scoring(model, tokenizer, x[1], cuda=cuda)[0])
+                pair_fluency = sent_scoring(model, tokenizer, x[1], cuda=cuda)[0] / sent_scoring(
+                    model, tokenizer, x[0], cuda=cuda)[0]
                 avg_fluency += pair_fluency if pair_fluency is not None else 0
                 counter += 1
             except RuntimeError:
