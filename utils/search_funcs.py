@@ -42,7 +42,7 @@ def beam_search(text, substitutions, original_pred, original_fluency, model=None
 
     # initialize model and tokenizer used for evaluating fluency if not provided
     if fluency_model is None or fluency_tokenizer is None:
-        fluency_model, fluency_tokenizer = model_init('gpt2', cuda=not torch.cuda.is_available())
+        fluency_model, fluency_tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
 
     sent = text.lower()
     cand_set = {(sent, 0)}
@@ -75,7 +75,7 @@ def beam_search(text, substitutions, original_pred, original_fluency, model=None
         if new_candidates:
             new_candidates = sorted(
                 new_candidates,
-                key=lambda x: abs(original_fluency - sent_scoring(fluency_model, fluency_tokenizer, x[0])[0]),
+                key=lambda x: sent_scoring(fluency_model, fluency_tokenizer, x[0])[0] / original_fluency,
                 reverse=True
             )
             cand_set = cand_set.union(new_candidates[:min(beam_size, len(new_candidates))])
@@ -88,8 +88,7 @@ def beam_search(text, substitutions, original_pred, original_fluency, model=None
     # if no adversarial is found, return the best candidate based on fluency
     try:
         best_candidate = max(cand_set,
-                             key=lambda x: abs(original_fluency - sent_scoring(fluency_model, fluency_tokenizer,
-                                                                               x[0])[0])
+                             key=lambda x: sent_scoring(fluency_model, fluency_tokenizer, x[0])[0] / original_fluency
                              )[0]
     except ValueError:
         best_candidate = sent
