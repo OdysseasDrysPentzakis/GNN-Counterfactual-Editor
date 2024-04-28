@@ -5,7 +5,6 @@ Description: A script containing a counterfactual generator class that uses Poly
 """
 
 import os
-import torch
 import argparse
 import numpy as np
 import pandas as pd
@@ -35,7 +34,7 @@ class PolyjuiceGenerator:
             exit(1)
         self.sentences = pd.read_csv(source_csv)[source_col].tolist()
 
-        self.cuda = torch.cuda.is_available() if cuda is None else cuda
+        self.cuda = False if cuda is None else cuda
         self.model = Polyjuice(model_path='uw-hai/polyjuice', is_cuda=self.cuda)
 
         self.dest_csv = 'polyjuice_edits.csv' if dest_csv is None else dest_csv
