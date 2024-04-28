@@ -93,7 +93,7 @@ class GnnEditor:
         self.pos = pos
         self.antonyms = False if antonyms is None else antonyms
 
-        self.fluency_model, self.fluency_tokenizer = model_init('gpt2', cuda=not torch.cuda.is_available())
+        self.fluency_model, self.fluency_tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
 
         self.distance_matrix = None
         self.d0 = None
