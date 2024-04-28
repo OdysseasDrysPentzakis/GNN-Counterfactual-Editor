@@ -222,7 +222,7 @@ def wn_path_similarity(synset0, synset1):    # find wordnet path similarity scor
 
 
 def get_distance(synset0, synset1):
-    if synset0.pos() == synset1.pos():
+    if synset0.pos() == synset1.pos() and synset0 != synset1:
         sim = synset0.path_similarity(synset1)
     else:
         sim = 10
