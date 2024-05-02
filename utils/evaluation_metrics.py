@@ -8,12 +8,20 @@ import numpy as np
 import pandas as pd
 
 # Metric-related imports
+import nltk
 from evaluate import load
-from pylev import levenshtein as lev_dist
 
 from utils.gpt2_functions import *
 from utils.graph_functions import *
 from utils.search_funcs import get_prediction
+
+
+def edit_distance(a, b):
+    a_lst = a.split()
+    b_lst = b.split()
+    lev = nltk.edit_distance(a_lst, b_lst)
+
+    return lev / len(a_lst)
 
 
 def adversarial_success(original_output, counterfactual_output):
@@ -89,7 +97,7 @@ def get_closeness(data, counter_data):
     assert len(sentences) == len(counter_sentences)
 
     # compute average levenshtein distance as a measurement of closeness
-    avg_lev = sum(lev_dist(x[0], x[1]) / len(x[0].split()) for x in zip(sentences, counter_sentences) if
+    avg_lev = sum(edit_distance(x[0].lower(), x[1]) for x in zip(sentences, counter_sentences) if
                   type(x[1]) != float) / len(sentences)
 
     return avg_lev
