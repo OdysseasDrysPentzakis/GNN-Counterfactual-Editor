@@ -193,10 +193,12 @@ class GnnEditor:
 
         return self
 
-    def create_counterfactuals(self, opt_th=False):
+    def create_counterfactuals(self, opt_th, use_contrastive_prob):
         """
         Create counterfactuals for the given data using the substitutions found.
 
+        :param opt_th: whether to use optimal threshold for the number of substitutions
+        :param use_contrastive_prob: whether to use contrastive probability as beam search criterion
         :return: List of the generated counterfactuals
         """
 
@@ -205,15 +207,19 @@ class GnnEditor:
         sentences = [elem[0] for elem in self.data.values.tolist()]
         counter_sents = []
         for s in tqdm(sentences):
-            # get original prediction
-            pred = get_prediction(model=self.predictor, tokenizer=self.tokenizer, text=s)
+            # get original prediction probabilities
+            logits = get_prediction(model=self.predictor, tokenizer=self.tokenizer, text=s, return_logits=True)
+            probs = torch.softmax(logits, dim=1)[0]
+
             # get original fluency
             fluency = sent_scoring(self.fluency_model, self.fluency_tokenizer, s)[0]
+
             # get the best counterfactual using beam search
             max_subs = math.ceil(len(s.split()) / 5) if opt_th else 10
-            cs = beam_search(text=s, substitutions=self.substitutions, original_pred=pred, original_fluency=fluency,
+            cs = beam_search(text=s, substitutions=self.substitutions, original_probs=probs, original_fluency=fluency,
                              model=self.predictor, tokenizer=self.tokenizer, fluency_model=self.fluency_model,
-                             fluency_tokenizer=self.fluency_tokenizer, max_subs=max_subs)
+                             fluency_tokenizer=self.fluency_tokenizer, max_subs=max_subs,
+                             use_contrastive_prob=use_contrastive_prob)
             counter_sents.append(cs)
 
         counter_data = pd.DataFrame({
@@ -222,6 +228,6 @@ class GnnEditor:
 
         return counter_data, self.substitutions
 
-    def pipeline(self, edge_filter=False, opt_th=False):
+    def pipeline(self, edge_filter=False, opt_th=False, use_contrastive_prob=False):
         return self.create_distance_matrix(edge_filter=edge_filter).find_substitutions().create_counterfactuals(
-            opt_th=opt_th)
+            opt_th=opt_th, use_contrastive_prob=use_contrastive_prob)
