@@ -63,7 +63,8 @@ torch.set_grad_enabled(False)
 
 class GnnGenerator:
     def __init__(self, src_file=None, col=None, dest_file=None, json_file=None, pos=None, antonyms=None,
-                 gnn_model_file=None, predictor_path=None, edge_filter=None, optimal_threshold=None):
+                 gnn_model_file=None, predictor_path=None, edge_filter=None, optimal_threshold=None,
+                 use_contrastive_prob=None):
         """
         A class that generates edits using a pretrained GNN model to solve RLAP.
 
@@ -75,6 +76,9 @@ class GnnGenerator:
         :param antonyms: a boolean value specifying whether to use antonyms as substitutes
         :param gnn_model_file: string representing the .pth file where the pretrained GNN is stored
         :param predictor_path: string representing the directory where the pretrained classifier is stored
+        :param edge_filter: a boolean value specifying whether to use pos-based edge filtering in the graph creation
+        :param optimal_threshold:  whether to use optimal threshold for upper limit of substitutions
+        :param use_contrastive_prob: whether to use contrastive probability as beam search criterion
         """
 
         if src_file is None:
@@ -114,6 +118,7 @@ class GnnGenerator:
         self.antonyms = antonyms
         self.edge_filter = edge_filter if edge_filter is not None else False
         self.opt_th = optimal_threshold if optimal_threshold is not None else False
+        self.use_contrastive_prob = use_contrastive_prob if use_contrastive_prob is not None else False
 
         self.edits = None
         self.subs_dict = None
@@ -128,7 +133,8 @@ class GnnGenerator:
 
         gnn_editor = GnnEditor(data=self.sentences, gnn_model=self.gnn_model, predictor=self.predictor,
                                tokenizer=self.tokenizer, pos=self.pos, antonyms=self.antonyms)
-        self.edits, self.subs_dict = gnn_editor.pipeline(edge_filter=self.edge_filter, opt_th=self.opt_th)
+        self.edits, self.subs_dict = gnn_editor.pipeline(edge_filter=self.edge_filter, opt_th=self.opt_th,
+                                                         use_contrastive_prob=self.use_contrastive_prob)
 
         return self
 
@@ -187,6 +193,8 @@ def parse_input(args=None):
                         help="Whether to use pos-based edge filtering in the graph creation process")
     parser.add_argument("-o", "--optimal-threshold", action='store_true', required=False,
                         help="Whether to use optimal threshold for upper limit of substitutions")
+    parser.add_argument("--use-contrastive-prob", action='store_true', required=False,
+                        help="Whether to use contrastive probability as beam search criterion")
 
     return parser.parse_args(args)
 
@@ -197,7 +205,7 @@ def main(args):
     generator = GnnGenerator(src_file=args.src_file, col=args.col, dest_file=args.dest_file, json_file=args.json_file,
                              pos=args.pos, antonyms=args.antonyms, gnn_model_file=args.gnn_model_file,
                              predictor_path=args.predictor_path, edge_filter=args.edge_filter,
-                             optimal_threshold=args.optimal_threshold)
+                             optimal_threshold=args.optimal_threshold, use_contrastive_prob=args.use_contrastive_prob)
 
     generator.pipeline()
 
