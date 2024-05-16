@@ -21,7 +21,7 @@ def get_prediction(model, tokenizer, text, return_logits=False):
 
 
 def beam_search(text, substitutions, original_probs, original_fluency, model=None, tokenizer=None,
-                fluency_model=None, fluency_tokenizer=None, beam_size=3, max_subs=10, use_contrastive_prob=False):
+                fluency_model=None, fluency_tokenizer=None, beam_size=5, max_subs=10, use_contrastive_prob=False):
     """
     A function that uses beam search to create appropriate adversarials based on a given text.
     At each step, we take the top b candidates based on fluency, and we continue until the original
