@@ -79,6 +79,7 @@ class GnnEditor:
     def __init__(self, data, gnn_model, predictor=None, tokenizer=None, pos=None, antonyms=None):
         """
         Initialize the GnnEditor object.
+
         :param data: dataframe with one column containing textual data
         :param gnn_model: GNN model to be used for solving RLAP problem
         :param predictor: pretrained model to be used for prediction
