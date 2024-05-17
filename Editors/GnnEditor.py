@@ -188,7 +188,6 @@ class GnnEditor:
         for i in range(pred_matrix.shape[0]):
             for j in range(pred_matrix.shape[1]):
                 if pred_matrix[i][j] == 1:
-
                     self.substitutions[self.d0[self.all_syn0[i]]] = self.d1[self.all_syn1[j]]
 
         return self
