@@ -1,6 +1,7 @@
 import math
 
 import spacy
+import torch
 import tqdm
 import re
 import itertools
@@ -10,6 +11,7 @@ from nltk.corpus import wordnet as wn
 from operator import itemgetter
 from tqdm import tqdm
 from networkx.algorithms import bipartite
+from scipy.spatial.distance import cosine
 
 nlp = spacy.load('en_core_web_sm')
 
@@ -219,6 +221,34 @@ def minimum_match(g, min_list_nodes):
 def wn_path_similarity(synset0, synset1):    # find wordnet path similarity score between two given synsets
     sim = synset0.path_similarity(synset1)
     return sim
+
+
+def get_cos_distance(synset0, synset1, word0, word1, model, tokenizer):
+    """
+    Get the cosine distance between two synsets based on their word embeddings.
+
+    :param synset0: wordnet synset of the first word
+    :param synset1: wordnet synset of the second word
+    :param word0: word of synset0
+    :param word1: word of synset1
+    :param model: pretrained llm model used to get wordvectors
+    :param tokenizer: pretrained tokenizer used to get wordvectors
+    :return: float value representing cosine distance between the two synsets
+    """
+
+    # get word embeddings
+    w1_inputs = tokenizer([word0], return_tensors="pt")
+    w2_inputs = tokenizer([word1], return_tensors="pt")
+
+    with torch.no_grad():
+        w1_embed = model(**w1_inputs).last_hidden_state[:, 0, :][0]
+        w2_embed = model(**w2_inputs).last_hidden_state[:, 0, :][0]
+
+    # get the cosine distance
+    cos_dist = 1 - cosine(w1_embed, w2_embed)
+
+    # apply edge filtering based on pos tag of the synsets and return final distance
+    return cos_dist if synset0.pos() == synset1.pos() else cos_dist + 10
 
 
 def get_distance(synset0, synset1):
