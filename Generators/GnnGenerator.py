@@ -62,9 +62,9 @@ torch.set_grad_enabled(False)
 
 
 class GnnGenerator:
-    def __init__(self, src_file=None, col=None, dest_file=None, json_file=None, pos=None, antonyms=None,
-                 gnn_model_file=None, predictor_path=None, edge_filter=None, optimal_threshold=None,
-                 use_contrastive_prob=None):
+    def __init__(self, src_file=None, col=None, dest_file=None, json_file=None, subs_file=None, embeddings=None,
+                 pos=None, antonyms=None, gnn_model_file=None, predictor_path=None, edge_filter=None,
+                 optimal_threshold=None, use_contrastive_prob=None):
         """
         A class that generates edits using a pretrained GNN model to solve RLAP.
 
@@ -72,6 +72,8 @@ class GnnGenerator:
         :param col: string representing the column name where the original sentences are stored
         :param dest_file: string(filepath) representing the destination csv file where the edits will be stored
         :param json_file: string representing the destination json file where the eligible substitutions will be stored
+        :param subs_file: string representing the json file where precomputed substitution pairs are stored
+        :param embeddings: string representing the json file where the precompute word embeddings are stored
         :param pos: string representing the part-of-speech of words to be substituted
         :param antonyms: a boolean value specifying whether to use antonyms as substitutes
         :param gnn_model_file: string representing the .pth file where the pretrained GNN is stored
@@ -92,8 +94,8 @@ class GnnGenerator:
             exit(1)
         self.sentences = pd.read_csv(src_file)[[col]]
 
-        if gnn_model_file is None:
-            print("[ERROR]: gnn_model_file must be specified")
+        if gnn_model_file is None and subs_file is None:
+            print("[ERROR]: gnn_model_file or subs_file must be specified")
             exit(1)
         if not os.path.exists(gnn_model_file):
             print("[ERROR]: File {} does not exist".format(gnn_model_file))
@@ -111,6 +113,22 @@ class GnnGenerator:
             exit(1)
         self.predictor = DistilBertForSequenceClassification.from_pretrained(predictor_path)
         self.tokenizer = DistilBertTokenizerFast.from_pretrained("distilbert-base-uncased")
+
+        self.substitutions = None
+        if subs_file is not None:
+            if not os.path.exists(subs_file):
+                print("[ERROR]: File {} does not exist".format(subs_file))
+                exit(1)
+            with open(subs_file, 'r') as f:
+                self.substitutions = json.load(f)
+
+        self.embeddings = None
+        if embeddings is not None:
+            if not os.path.exists(embeddings):
+                print("[ERROR]: File {} does not exist".format(embeddings))
+                exit(1)
+            with open(embeddings, 'r') as f:
+                self.embeddings = json.load(f)
 
         self.dest_file = 'gnn_edits.csv' if dest_file is None else dest_file
         self.json_file = json_file
@@ -132,7 +150,8 @@ class GnnGenerator:
         print("[INFO]: Generating counterfactuals...")
 
         gnn_editor = GnnEditor(data=self.sentences, gnn_model=self.gnn_model, predictor=self.predictor,
-                               tokenizer=self.tokenizer, pos=self.pos, antonyms=self.antonyms)
+                               tokenizer=self.tokenizer, pos=self.pos, antonyms=self.antonyms, subs=self.substitutions,
+                               word_embeddings=self.embeddings)
         self.edits, self.subs_dict = gnn_editor.pipeline(edge_filter=self.edge_filter, opt_th=self.opt_th,
                                                          use_contrastive_prob=self.use_contrastive_prob)
 
@@ -181,11 +200,15 @@ def parse_input(args=None):
                         help="The csv filepath where the generated edits will be stored")
     parser.add_argument("-j", "--json-file", action='store', metavar="json_file", required=False,
                         help="The json filepath where the substitution dictionary will be stored")
+    parser.add_argument("--subs-file", action='store', metavar="subs_file", required=False,
+                        help="The json filepath where the precomputed substitution pairs are stored")
+    parser.add_argument("--embeddings", action='store', metavar="embeddings", required=False,
+                        help="The json filepath where the word embeddings are stored")
     parser.add_argument("-p", "--pos", action='store', metavar="pos", required=False,
                         help="The part-of-speech tag of the words to be substituted")
     parser.add_argument("--antonyms", action='store_true', required=False,
                         help="Whether to use antonyms as substitutes")
-    parser.add_argument("-g", "--gnn-model-file", action='store', metavar="gnn_model_file", required=True,
+    parser.add_argument("-g", "--gnn-model-file", action='store', metavar="gnn_model_file", required=False,
                         help="The filepath to the pretrained GNN model")
     parser.add_argument("--predictor-path", action='store', metavar="predictor_path", required=True,
                         help="The directory path to the pretrained classifier")
@@ -203,9 +226,10 @@ def main(args):
     start_time = datetime.now()
 
     generator = GnnGenerator(src_file=args.src_file, col=args.col, dest_file=args.dest_file, json_file=args.json_file,
-                             pos=args.pos, antonyms=args.antonyms, gnn_model_file=args.gnn_model_file,
-                             predictor_path=args.predictor_path, edge_filter=args.edge_filter,
-                             optimal_threshold=args.optimal_threshold, use_contrastive_prob=args.use_contrastive_prob)
+                             subs_file=args.subs_file, embeddings=args.embeddings, pos=args.pos, antonyms=args.antonyms,
+                             gnn_model_file=args.gnn_model_file, predictor_path=args.predictor_path,
+                             edge_filter=args.edge_filter, optimal_threshold=args.optimal_threshold,
+                             use_contrastive_prob=args.use_contrastive_prob)
 
     generator.pipeline()
 
