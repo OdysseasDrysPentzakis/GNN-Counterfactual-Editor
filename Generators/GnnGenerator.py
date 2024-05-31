@@ -22,6 +22,7 @@ antonyms is False:
         --predictor-path <directory path to the pretrained classifier>
         [--dest-file <path_to_dest_file>]
         [--json-file <path_to_json_file where accepted substitutions will be stored>]
+        [--embeddings <path_to_json_file where word embeddings are stored]
         [--pos <part-of-speech tag of words to be substituted>]
         [--antonyms]
         [--edge-filter]
@@ -36,7 +37,7 @@ Example:
         --predictor-path ~/my_predictor
 
 2)  Specify every parameter to generate as specific counterfactuals as possible:
-    python3 GraphGenerator.py
+    python3 GnnGenerator.py
         --src-file ~/data/original_data.csv
         --col sentences
         --gnn-model-file ~/my_gnn_model.pth
@@ -48,6 +49,27 @@ Example:
         --edge-filter
         --optimal-threshold
 
+3) Generate counterfactuals and provide precomputed word embeddings file:
+    python3 GnnGenerator.py
+        --src-file ~/data/original_data.csv
+        --col sentences
+        --gnn-model-file ~/my_gnn_model.pth
+        --predictor-path ~/my_predictor
+        --dest-file ~/data/counterfactual_data.csv
+        --json-file ~/data/substitutions.json
+        --embeddings ~/word_embeddings.json
+        --pos adj
+        --antonyms
+        --edge-filter
+        --optimal-threshold
+
+4) Generate counterfactuals using only beam_search by providing precomputed substitution pairs:
+    python3 GnnGenerator.py
+        --src-file ~/data/original_data.csv
+        --col sentences
+        --subs-file ~/word_pairs.json
+        --predictor-path ~/my_predictor
+        --dest-file ~/data/counterfactual_data.csv
 """
 
 import os
