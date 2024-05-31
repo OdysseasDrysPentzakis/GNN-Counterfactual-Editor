@@ -4,8 +4,11 @@ Created 17 April 2024
 Description: A script containing a counterfactual editor class that uses a bipartite graph and a pretrained GNN to
 create edits
 """
+
 import pandas as pd
 from torch_geometric.data import Data, Dataset, DataLoader
+from transformers import AutoTokenizer, AutoModel
+
 from utils.glan_functions import *
 from utils.graph_functions import *
 from utils.search_funcs import *
@@ -76,7 +79,8 @@ class GraphData(Dataset):
 
 
 class GnnEditor:
-    def __init__(self, data, gnn_model, predictor=None, tokenizer=None, pos=None, antonyms=None):
+    def __init__(self, data, gnn_model, predictor=None, tokenizer=None, pos=None, antonyms=None, subs=None,
+                 word_embeddings=None):
         """
         Initialize the GnnEditor object.
 
@@ -86,6 +90,8 @@ class GnnEditor:
         :param tokenizer: Tokenizer to be used for tokenization before prediction
         :param pos: string representing Part-of-Speech (pos) tag
         :param antonyms: whether to substitute with antonyms or not
+        :param subs: dictionary containing precomputed substitution pairs
+        :param word_embeddings: dictionary containing word embeddings
         """
         self.data = data
         self.model = gnn_model
@@ -102,11 +108,13 @@ class GnnEditor:
         self.all_syn0 = None
         self.all_syn1 = None
 
-        self.substitutions = dict()
+        self.substitutions = subs
+        self.word_embeddings = word_embeddings
 
     def create_distance_matrix(self, edge_filter=False):
         """
         Create a graph from the given data.
+        :param edge_filter: boolean value, denoting whether to use edge filtering or not
 
         :return: GnnEditor object
         """
@@ -144,11 +152,31 @@ class GnnEditor:
         print("Creating Distance Matrix...")
         self.distance_matrix = torch.zeros((row_length, col_length))
 
-        for i in range(row_length):
-            for j in range(col_length):
-                # rows will be syn0 and columns will be syn1
-                self.distance_matrix[i, j] = get_distance(self.all_syn0[i], self.all_syn1[j]) if edge_filter \
-                    else wn_path_similarity(self.all_syn0[i], self.all_syn1[j])
+        if self.word_embeddings is None:
+            model_id = "llmrails/ember-v1"
+            embed_tokenizer = AutoTokenizer.from_pretrained(model_id)
+            embed_model = AutoModel.from_pretrained(model_id)
+
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
+            embed_model.to(device)
+
+            for i in range(row_length):
+                for j in range(col_length):
+                    # rows will be syn0 and columns will be syn1
+                    self.distance_matrix[i, j] = get_cos_distance(
+                        self.all_syn0[i], self.all_syn1[j], self.d0[self.all_syn0[i]],
+                        self.d1[self.all_syn1[j]], embed_model, embed_tokenizer) if edge_filter else\
+                        wn_path_similarity(self.all_syn0[i], self.all_syn1[j])
+
+            del embed_model
+            del embed_tokenizer
+
+        else:
+            # if embeddings are already precomputed
+            for i in range(row_length):
+                for j in range(col_length):
+                    i_word_vector, j_word_vector = self.word_embeddings[i], self.word_embeddings[j]
+                    self.distance_matrix[i, j] = cosine(i_word_vector, j_word_vector)
 
         return self
 
@@ -229,5 +257,9 @@ class GnnEditor:
         return counter_data, self.substitutions
 
     def pipeline(self, edge_filter=False, opt_th=False, use_contrastive_prob=False):
-        return self.create_distance_matrix(edge_filter=edge_filter).find_substitutions().create_counterfactuals(
-            opt_th=opt_th, use_contrastive_prob=use_contrastive_prob)
+        if self.substitutions is None:
+            self.substitutions = dict()
+            self.create_distance_matrix(edge_filter=edge_filter).find_substitutions().create_counterfactuals(
+                opt_th=opt_th, use_contrastive_prob=use_contrastive_prob)
+        else:
+            self.create_counterfactuals(opt_th=opt_th, use_contrastive_prob=use_contrastive_prob)
