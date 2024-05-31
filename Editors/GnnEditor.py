@@ -175,8 +175,13 @@ class GnnEditor:
             # if embeddings are already precomputed
             for i in range(row_length):
                 for j in range(col_length):
+                    # get the word embeddings
                     i_word_vector, j_word_vector = self.word_embeddings[i], self.word_embeddings[j]
-                    self.distance_matrix[i, j] = cosine(i_word_vector, j_word_vector)
+
+                    if edge_filter and self.all_syn0[i].pos() != self.all_syn1[j].pos():
+                        self.distance_matrix[i, j] = 10
+                    else:
+                        self.distance_matrix[i, j] = cosine(i_word_vector, j_word_vector)
 
         return self
 
@@ -257,6 +262,15 @@ class GnnEditor:
         return counter_data, self.substitutions
 
     def pipeline(self, edge_filter=False, opt_th=False, use_contrastive_prob=False):
+        """
+        A method that provides sequential execution of the other methods to perform counterfactual generation.
+
+        :param edge_filter: boolean value, denoting whether to apply edge filtering or not
+        :param opt_th: boolean value, denoting whether to use optimal_threshold as upper limit of substitutions
+        :param use_contrastive_prob: boolean value, denoting whether to include contrastive probability in beam_search
+        :return:
+        """
+
         if self.substitutions is None:
             self.substitutions = dict()
             self.create_distance_matrix(edge_filter=edge_filter).find_substitutions().create_counterfactuals(
