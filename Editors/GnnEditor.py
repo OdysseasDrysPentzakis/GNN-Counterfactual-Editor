@@ -176,7 +176,12 @@ class GnnEditor:
             for i in range(row_length):
                 for j in range(col_length):
                     # get the word embeddings
-                    i_word_vector, j_word_vector = self.word_embeddings[i], self.word_embeddings[j]
+                    try:
+                        i_word_vector = self.word_embeddings[self.d0[self.all_syn0[i]]]
+                        j_word_vector = self.word_embeddings[self.d1[self.all_syn1[j]]]
+                    except KeyError:
+                        self.distance_matrix[i, j] = 10
+                        continue
 
                     if edge_filter and self.all_syn0[i].pos() != self.all_syn1[j].pos():
                         self.distance_matrix[i, j] = 10
@@ -273,7 +278,7 @@ class GnnEditor:
 
         if self.substitutions is None:
             self.substitutions = dict()
-            self.create_distance_matrix(edge_filter=edge_filter).find_substitutions().create_counterfactuals(
+            return self.create_distance_matrix(edge_filter=edge_filter).find_substitutions().create_counterfactuals(
                 opt_th=opt_th, use_contrastive_prob=use_contrastive_prob)
         else:
-            self.create_counterfactuals(opt_th=opt_th, use_contrastive_prob=use_contrastive_prob)
+            return self.create_counterfactuals(opt_th=opt_th, use_contrastive_prob=use_contrastive_prob)
