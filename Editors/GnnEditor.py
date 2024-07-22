@@ -163,7 +163,7 @@ class GnnEditor:
             for i in range(row_length):
                 for j in range(col_length):
                     # rows will be syn0 and columns will be syn1
-                    self.distance_matrix[i, j] = get_cos_distance(
+                    self.distance_matrix[i, j] = get_cos_similarity(
                         self.all_syn0[i], self.all_syn1[j], self.d0[self.all_syn0[i]],
                         self.d1[self.all_syn1[j]], embed_model, embed_tokenizer) if edge_filter else\
                         wn_path_similarity(self.all_syn0[i], self.all_syn1[j])
