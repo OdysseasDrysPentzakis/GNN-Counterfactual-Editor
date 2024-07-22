@@ -186,7 +186,7 @@ class GnnEditor:
                     if edge_filter and self.all_syn0[i].pos() != self.all_syn1[j].pos():
                         self.distance_matrix[i, j] = 10
                     else:
-                        self.distance_matrix[i, j] = cosine(i_word_vector, j_word_vector)
+                        self.distance_matrix[i, j] = 2 - cosine(i_word_vector, j_word_vector)
 
         return self
 
