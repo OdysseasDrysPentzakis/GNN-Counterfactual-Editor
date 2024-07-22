@@ -135,12 +135,12 @@ class GnnEditor:
             syn1 = get_antonym_list(lst) if self.antonyms else syn0
 
         else:
-            syn0 = []
-            syn0.extend(create_attributes_list(sentences))
-            syn0.extend(create_verb_list(sentences))
-            syn0.extend(create_singular_list(sentences))
+            attributes_lst = create_attributes_list(sentences)
+            verb_lst = create_verb_list(sentences)
+            noun_lst = create_singular_list(sentences)
 
-            syn1 = get_antonym_list(syn0) if self.antonyms else syn0
+            syn0 = attributes_lst + verb_lst + noun_lst
+            syn1 = syn0 if not self.antonyms else get_antonym_list(attributes_lst) + verb_lst + noun_lst
 
         self.all_syn0, self.d0, ind0 = get_synsets(syn0, pos=self.pos, return_index=True)
         self.all_syn1, self.d1, ind1 = get_synsets(syn1, pos=self.pos, return_index=True)
