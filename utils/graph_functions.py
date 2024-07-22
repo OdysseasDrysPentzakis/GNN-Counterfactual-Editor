@@ -223,7 +223,7 @@ def wn_path_similarity(synset0, synset1):    # find wordnet path similarity scor
     return sim
 
 
-def get_cos_distance(synset0, synset1, word0, word1, model, tokenizer):
+def get_cos_similarity(synset0, synset1, word0, word1, model, tokenizer):
     """
     Get the cosine distance between two synsets based on their word embeddings.
 
@@ -246,11 +246,11 @@ def get_cos_distance(synset0, synset1, word0, word1, model, tokenizer):
         w1_embed = model(**w1_inputs).last_hidden_state[:, 0, :][0].to('cpu')
         w2_embed = model(**w2_inputs).last_hidden_state[:, 0, :][0].to('cpu')
 
-    # get the cosine distance
-    cos_dist = cosine(w1_embed, w2_embed)
+    # get the cosine similarity, but make it positive (bounded in 0 and 2)
+    cos_sim = 2 - cosine(w1_embed, w2_embed)
 
     # apply edge filtering based on pos tag of the synsets and return final distance
-    return cos_dist if synset0.pos() == synset1.pos() else cos_dist + 10
+    return cos_sim if synset0.pos() == synset1.pos() else 10
 
 
 def get_distance(synset0, synset1):
