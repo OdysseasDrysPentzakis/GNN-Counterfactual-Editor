@@ -2,12 +2,7 @@
 /counterfactuals
 /.ipynb_checkpoints
 /notebooks/.ipynb_checkpoints
-/Connectors/ConceptNet_DB/
-/Connectors/__pycache__/
 /Data/
 /Editors/__pycache__/
-/notebooks/graph_framework/
 /notebooks/utilities/.ipynb_checkpoints/
 /utils/__pycache__/
-/functions/.ipynb_checkpoints
-/Testing/.ipynb_checkpoints
