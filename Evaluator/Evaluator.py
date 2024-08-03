@@ -59,7 +59,7 @@ class Evaluator:
             print("[ERROR]: counter_col must be specified")
             exit(1)
 
-        self.sents = pd.read_csv(original_csv)[[original_col]].head(100)
+        self.sents = pd.read_csv(original_csv)[[original_col]]
         self.counter_sents = pd.read_csv(counter_csv)[[counter_col]]
         self.metric = metric if metric is not None else 'all'
         self.predictor = None
