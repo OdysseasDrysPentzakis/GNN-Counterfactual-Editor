@@ -85,11 +85,11 @@ def beam_search(text, substitutions, original_probs, original_fluency, model=Non
                 # else, add it to the candidate list
                 new_candidates.append((new_cand_str, prev_sub_idx+idx, contrastive_prob))
 
-        # sort the new candidates based on fluency and add the top b to the next round
+        # sort the new candidates based on contrastive probability and add the top b to the next round
         if new_candidates:
             new_candidates = sorted(
                 new_candidates,
-                key=lambda x: sent_scoring(fluency_model, fluency_tokenizer, x[0])[0] / original_fluency + x[2],
+                key=lambda x: x[2],
                 reverse=True
             )
             cand_set = cand_set.union(new_candidates[:min(beam_size, len(new_candidates))])
@@ -99,10 +99,10 @@ def beam_search(text, substitutions, original_probs, original_fluency, model=Non
         counter += 1  # update counter value
         new_candidates = []  # reset the new candidates list
 
-    # if no adversarial is found, return the best candidate based on fluency
+    # if no adversarial is found, return the best candidate based on contrastive probability
     try:
         best_cand = max(cand_set,
-                        key=lambda x: sent_scoring(fluency_model, fluency_tokenizer, x[0])[0] / original_fluency + x[2]
+                        key=lambda x: x[2]
                         )[0]
     except ValueError:
         best_cand = sent
