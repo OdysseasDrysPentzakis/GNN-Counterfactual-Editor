@@ -153,7 +153,7 @@ class GnnEditor:
         self.distance_matrix = torch.zeros((row_length, col_length))
 
         if self.word_embeddings is None:
-            model_id = "llmrails/ember-v1"
+            model_id = "mixedbread-ai/mxbai-embed-large-v1"
             embed_tokenizer = AutoTokenizer.from_pretrained(model_id)
             embed_model = AutoModel.from_pretrained(model_id)
 
