@@ -1,11 +1,11 @@
 """
 Created 31 May 2023
 @author: Dimitris Lymperopoulos
-Description: A python file containing different functions to evaluate the generated counterfactuals
+Description: A python file containing different evaluation metric functions
 """
 
 import nltk
-from utils.gpt2_functions import *
+from utils.llm_functions import *
 from utils.graph_functions import *
 from utils.search_funcs import get_prediction
 

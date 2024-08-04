@@ -1,4 +1,10 @@
-from utils.gpt2_functions import *
+"""
+Created 16 April 2024
+@author: Dimitris Lymperopoulos
+Description: A python file containing beam search and assisting function
+"""
+
+from utils.llm_functions import *
 
 
 def get_prediction(model, tokenizer, text, return_logits=False):

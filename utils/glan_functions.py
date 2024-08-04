@@ -1,3 +1,9 @@
+""""
+Created 15 April 2024
+@author: Dimitris Lymperopoulos
+Description: A python file containing functions used in the GLAN model
+"""
+
 import numpy as np
 
 

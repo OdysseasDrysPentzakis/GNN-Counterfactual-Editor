@@ -1,3 +1,9 @@
+"""
+Created 10 February 2024
+@author: Dimitris Lymperopoulos
+Description: A python file containing assisting functions for the bipartite graph
+"""
+
 import math
 
 import spacy
