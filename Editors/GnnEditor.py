@@ -145,7 +145,6 @@ class GnnEditor:
         self.all_syn0, self.d0, ind0 = get_synsets(syn0, pos=self.pos, return_index=True)
         self.all_syn1, self.d1, ind1 = get_synsets(syn1, pos=self.pos, return_index=True)
 
-        # TODO: maybe use the min list as rows and the max as columns instead
         row_length = len(self.all_syn0)
         col_length = len(self.all_syn1)
 
