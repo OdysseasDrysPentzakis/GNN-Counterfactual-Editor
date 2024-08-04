@@ -1,3 +1,9 @@
+"""
+Created 10 February 2024
+@author: Dimitris Lymperopoulos
+Description: A python file containing utility functions for LLMs (GPT-2 and T5)
+"""
+
 import torch
 from transformers import OpenAIGPTTokenizer, OpenAIGPTLMHeadModel
 from transformers import GPT2Tokenizer, GPT2LMHeadModel, T5ForConditionalGeneration, T5Tokenizer
