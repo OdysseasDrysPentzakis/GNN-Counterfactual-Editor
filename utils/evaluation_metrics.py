@@ -4,37 +4,27 @@ Created 31 May 2023
 Description: A python file containing different functions to evaluate the generated counterfactuals
 """
 
-import numpy as np
-import pandas as pd
-
-# Metric-related imports
 import nltk
-from evaluate import load
-
 from utils.gpt2_functions import *
 from utils.graph_functions import *
 from utils.search_funcs import get_prediction
 
 
 def edit_distance(a, b):
+    """
+    A function that computes the word-level levenshtein distance between two strings and returns it normalized
+    by the length of the first string.
+
+    :param a: string 1
+    :param b: string 2
+
+    :return: float value representing the normalized levenshtein distance between the two strings
+    """
     a_lst = a.split()
     b_lst = b.split()
     lev = nltk.edit_distance(a_lst, b_lst)
 
     return lev / len(a_lst)
-
-
-def adversarial_success(original_output, counterfactual_output):
-    """
-    :param original_output: a list with the outputs produced from the original sentences
-    :param counterfactual_output: a list with the outputs produced from the generated counterfactuals
-    :return: a float representing the per-word-influence of each intervention on the outcome change
-    """
-
-    # check that the two list are of equal length
-    assert len(original_output) == len(counterfactual_output)
-
-    return np.mean([((t[0] - t[1]) / t[0]) for t in zip(original_output, counterfactual_output)]) / len(original_output)
 
 
 def get_fluency(data, counter_data, model, tokenizer):
@@ -169,68 +159,3 @@ def get_flip_rate(data, counter_data, model, tokenizer):
             flip_rate += 1
 
     return flip_rate / len(sentences)
-
-
-def get_baseline_metric(data, pos, eval_metric, model_required=False, preprocessor=None, model=None, antonyms=False):
-    """
-    A function that takes as input a dataframe with the textual data, and computes a metric based on a bipartite graph,
-    where the edge weights represent the distance between words (nodes) as extracted from wordnet.
-
-    :param data: pd.DataFrame() containing one column with the textual data
-    :param pos: string that specifies which part-of-speech shall be considered for substitution (noun, verb, adj)
-    :param eval_metric: a string that represents the metric which must be optimized during fine-tuning
-    :param model_required: boolean value specifing whether a pretrained model is also required for the metric
-    computation
-    :param preprocessor: a custom class that implements the necessary preprocessing of the data
-    :param model: a pretrained model on the dataset
-    :param antonyms: boolean value specifying whether antonyms should be considered for substitution
-    :returns: a float value representing the computed evaluation metric
-    """
-
-    # create counter sentences
-    sents = [elem[0] for elem in data.values.tolist()]
-    counter_sents, _, _, _ = get_edits(sents, pos=pos, thresh=3, antonyms=antonyms)
-
-    # convert them to a dataframe
-    counter_data_df = pd.DataFrame({
-        'counter_sents': counter_sents
-    })
-
-    # initialize the required parameters of the evaluation metric function
-    fluency_model, fluency_tokenizer, bertscore = None, None, None
-    if eval_metric == 'fluency':
-        fluency_model, fluency_tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
-    elif eval_metric == 'bertscore':
-        bertscore = load("bertscore")
-    elif eval_metric == 'fluency_bertscore':
-        model, tokenizer = model_init('t5-base', cuda=not torch.cuda.is_available())
-        bertscore = load("bertscore")
-    elif eval_metric == 'closeness':
-        pass
-    else:
-        raise AttributeError("eval_metric '{}' is not supported!".format(eval_metric))
-
-    # compute the specified metric
-    if not model_required:
-
-        if eval_metric == 'fluency':
-            return get_fluency(data, counter_data_df, fluency_model, fluency_tokenizer), counter_data_df
-        elif eval_metric == 'bertscore':
-            return get_bertscore(data, counter_data_df, bertscore), counter_data_df
-        elif eval_metric == 'fluency_bertscore':
-            fluency = get_fluency(data, counter_data_df, fluency_model, fluency_tokenizer)
-            bscore = get_bertscore(data, counter_data_df, bertscore)
-            return 2 * fluency * bscore / (fluency + bscore), counter_data_df
-        elif eval_metric == 'closeness':
-            return get_closeness(data, counter_data_df), counter_data_df
-
-    else:
-        # first process the original data and get model predictions
-        processed_data = preprocessor.process(data)
-        original_preds = model.predict(processed_data)
-
-        # do the same but for the counterfactual-generated data
-        processed_counter_data = preprocessor.process(counter_data_df)
-        counter_preds = model.predict(processed_counter_data)
-
-        return eval_metric(original_preds, counter_preds), counter_data_df
