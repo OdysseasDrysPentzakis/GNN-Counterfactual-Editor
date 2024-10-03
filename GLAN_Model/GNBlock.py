@@ -59,7 +59,6 @@ class NodeModel(torch.nn.Module):
         row, col = edge_index
         wAgg = self.wAggregation(torch.cat((x[col], x[row]), dim=1))
         out = torch.cat([x[row] * wAgg, edge_attr], dim=1)
-        # out = torch.cat([x[row], edge_attr], dim=1)
         out = self.node_mlp_1(out)
         out = scatter_mean(out, col, dim=0, dim_size=x.size(0))
 
