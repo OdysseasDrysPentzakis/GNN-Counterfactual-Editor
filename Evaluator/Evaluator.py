@@ -10,7 +10,7 @@ Usage:
         --original-col <name of column with the original sentences>
         --counter-csv <path_to_counter_csv>
         --counter-col <name of column with the counter sentences>
-        [--metric <metric_to_be_used (fluency, bertscore, closeness, flip-rate)>]
+        [--metric <metric_to_be_used (fluency, closeness, minimality, flip-rate)>]
 
 Example:
 1)
@@ -19,7 +19,7 @@ Example:
         --original-col sentences
         --counter-csv ~/data/counterfactual_data.csv
         --counter-col counter_sents
-        --metric bertscore
+        --metric closeness
 
 """
 
@@ -85,14 +85,14 @@ class Evaluator:
             fluency = get_fluency(self.sents, self.counter_sents, model, tokenizer)
             print("\nFluency: {}".format(fluency))
 
-        elif self.metric == 'bertscore':
-            bertscore = load("bertscore")
-            score = get_bertscore(self.sents, self.counter_sents, bertscore)
-            print("\nBERTScore: {}".format(score))
-
         elif self.metric == 'closeness':
-            closeness = get_closeness(self.sents, self.counter_sents)
+            bertscore = load("bertscore")
+            closeness = get_bertscore(self.sents, self.counter_sents, bertscore)
             print("\nCloseness: {}".format(closeness))
+
+        elif self.metric == 'minimality':
+            minimality = get_closeness(self.sents, self.counter_sents)
+            print("\nMinimality: {}".format(minimality))
 
         elif self.metric == 'flip-rate':
             flip_rate = get_flip_rate(self.sents, self.counter_sents, self.predictor, self.tokenizer)
@@ -105,15 +105,15 @@ class Evaluator:
             del tokenizer
 
             bertscore = load("bertscore")
-            score = get_bertscore(self.sents, self.counter_sents, bertscore)
+            closeness = get_bertscore(self.sents, self.counter_sents, bertscore)
 
-            closeness = get_closeness(self.sents, self.counter_sents)
+            minimality = get_closeness(self.sents, self.counter_sents)
 
             flip_rate = get_flip_rate(self.sents, self.counter_sents, self.predictor, self.tokenizer)
 
             print("\nFluency: {}".format(fluency))
-            print("BERTScore: {}".format(score))
             print("Closeness: {}".format(closeness))
+            print("Minimality: {}".format(minimality))
             print("Flip Rate: {}".format(flip_rate))
 
 
@@ -132,7 +132,7 @@ def parse_input(args=None):
                         help="The path to the csv file containing the counterfactual sentences")
     parser.add_argument("-cc", "--counter-col", action='store', metavar="counter_col", required=True,
                         help="The name of the column containing the counterfactual sentences")
-    parser.add_argument("-m", "--metric", choices=['fluency', 'bertscore', 'closeness', 'flip-rate'], action='store',
+    parser.add_argument("-m", "--metric", choices=['fluency', 'closeness', 'minimality', 'flip-rate'], action='store',
                         metavar="metric", required=False, default='all', help="The metric to be used for evaluation")
     parser.add_argument("-p", "--predictor", action='store', metavar="predictor", required=False,
                         help="The path to the pretrained predictor model")
