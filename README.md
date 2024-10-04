@@ -2,9 +2,8 @@
 
 ![Python](https://img.shields.io/badge/python-v3.9-blue.svg)
 ![Torch](https://img.shields.io/badge/torch-v2.4-red.svg)
-![torch-geometric](https://img.shields.io/badge/torch-geometric-v1.6-orange.svg)
-![sentence-transformers](https://img.shields.io/badge/sentence-transformers-v3.0-yellow.svg)
-![nltk](https://img.shields.io/badge/nltk-v3.8-green.svg)
+![spacy](https://img.shields.io/badge/spacy-v3.7-orange.svg)
+![nltk](https://img.shields.io/badge/nltk-v3.8-yellow.svg)
 
 This repository contains code for our paper [Optimal and efficient text counterfactuals using Graph Neural Networks](https://arxiv.org/abs/2408.01969).
 
